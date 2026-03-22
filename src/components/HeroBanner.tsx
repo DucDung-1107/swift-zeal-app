@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import heroBanner from "@/assets/banners/hero-banner.jpg";
 
 const slides = [
   {
-    image: "https://theme.hstatic.net/200001032945/1001379709/14/slide_1_img.jpg?v=496",
-    alt: "Tìm kiếm đại lý bán hàng",
-    link: "/blog/tim-kiem-dai-ly",
+    image: heroBanner,
+    alt: "ZealSun - Giải pháp chiếu sáng năng lượng mặt trời",
+    link: "/collections/all",
   },
 ];
 
