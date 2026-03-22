@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Search, User, ShoppingCart, Menu, X, ChevronDown, Shield, Truck, RefreshCw } from "lucide-react";
+import { Search, User, ShoppingCart, Menu, ChevronDown, Shield, Truck, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { label: "TRANG CHỦ", href: "/" },
@@ -30,16 +31,10 @@ const Header = () => {
       {/* Top bar */}
       <div className="container mx-auto">
         <div className="flex items-center justify-between py-3 gap-4">
-          {/* Logo */}
           <a href="/" className="flex-shrink-0">
-            <img
-              src="https://theme.hstatic.net/200001032945/1001379709/14/logo.png?v=496"
-              alt="ZealSun Solar Light"
-              className="h-10 md:h-12"
-            />
+            <img src={logo} alt="ZealSun Solar Light" className="h-10 md:h-12" />
           </a>
 
-          {/* Search */}
           <div className="hidden md:flex flex-1 max-w-xl relative">
             <Input
               type="text"
@@ -48,15 +43,11 @@ const Header = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pr-12 border-border rounded-md"
             />
-            <Button
-              size="icon"
-              className="absolute right-0 top-0 h-full rounded-l-none bg-primary hover:bg-primary/90"
-            >
+            <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none bg-primary hover:bg-primary/90">
               <Search className="h-4 w-4 text-primary-foreground" />
             </Button>
           </div>
 
-          {/* Account & Cart */}
           <div className="hidden md:flex items-center gap-4">
             <a href="/account" className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
               <User className="h-5 w-5" />
@@ -76,7 +67,6 @@ const Header = () => {
             </a>
           </div>
 
-          {/* Mobile menu */}
           <div className="md:hidden flex items-center gap-2">
             <a href="/cart" className="relative p-2">
               <ShoppingCart className="h-5 w-5" />
@@ -90,31 +80,20 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
                 <div className="p-4 border-b">
-                  <img
-                    src="https://theme.hstatic.net/200001032945/1001379709/14/logo.png?v=496"
-                    alt="ZealSun"
-                    className="h-8"
-                  />
+                  <img src={logo} alt="ZealSun" className="h-8" />
                 </div>
                 <div className="p-4">
                   <Input placeholder="Tìm kiếm..." className="mb-4" />
                   <nav className="space-y-1">
                     {navItems.map((item) => (
                       <div key={item.label}>
-                        <a
-                          href={item.href}
-                          className="block py-2 px-3 text-sm font-medium text-foreground hover:bg-muted rounded-md"
-                        >
+                        <a href={item.href} className="block py-2 px-3 text-sm font-medium text-foreground hover:bg-muted rounded-md">
                           {item.label}
                         </a>
                         {item.children && (
                           <div className="pl-4">
                             {item.children.map((child) => (
-                              <a
-                                key={child.label}
-                                href={child.href}
-                                className="block py-1.5 px-3 text-sm text-muted-foreground hover:text-primary"
-                              >
+                              <a key={child.label} href={child.href} className="block py-1.5 px-3 text-sm text-muted-foreground hover:text-primary">
                                 {child.label}
                               </a>
                             ))}
@@ -129,7 +108,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Trust badges */}
         <div className="hidden md:flex items-center gap-6 pb-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Shield className="h-4 w-4 text-primary" />
@@ -146,7 +124,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav className="bg-foreground">
         <div className="container mx-auto">
           <div className="hidden md:flex items-center justify-between">
@@ -158,21 +135,14 @@ const Header = () => {
                   onMouseEnter={() => item.children && setShowDropdown(true)}
                   onMouseLeave={() => setShowDropdown(false)}
                 >
-                  <a
-                    href={item.href}
-                    className="flex items-center gap-1 px-5 py-3 text-sm font-medium text-background hover:text-primary transition-colors"
-                  >
+                  <a href={item.href} className="flex items-center gap-1 px-5 py-3 text-sm font-medium text-background hover:text-primary transition-colors">
                     {item.label}
                     {item.children && <ChevronDown className="h-3 w-3" />}
                   </a>
                   {item.children && showDropdown && (
                     <div className="absolute top-full left-0 bg-background shadow-lg rounded-b-md min-w-[200px] z-50 border">
                       {item.children.map((child) => (
-                        <a
-                          key={child.label}
-                          href={child.href}
-                          className="block px-4 py-2.5 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
-                        >
+                        <a key={child.label} href={child.href} className="block px-4 py-2.5 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors">
                           {child.label}
                         </a>
                       ))}
@@ -181,10 +151,7 @@ const Header = () => {
                 </div>
               ))}
             </div>
-            <a
-              href="/live"
-              className="flex items-center gap-2 px-4 py-2 border border-muted-foreground/30 rounded-md text-sm text-background hover:border-primary hover:text-primary transition-colors"
-            >
+            <a href="/live" className="flex items-center gap-2 px-4 py-2 border border-muted-foreground/30 rounded-md text-sm text-background hover:border-primary hover:text-primary transition-colors">
               <span className="h-2 w-2 bg-destructive rounded-full animate-pulse" />
               Live stream
             </a>
@@ -192,7 +159,6 @@ const Header = () => {
         </div>
       </nav>
 
-      {/* Mobile search */}
       <div className="md:hidden px-4 py-2 bg-muted">
         <div className="relative">
           <Input

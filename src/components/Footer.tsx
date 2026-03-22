@@ -1,11 +1,11 @@
 import { Mail, Phone, MapPin, Facebook, Youtube } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const Footer = () => {
   return (
     <footer className="bg-foreground text-background">
-      {/* Newsletter */}
       <div className="border-b border-muted-foreground/20">
         <div className="container mx-auto py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -14,28 +14,17 @@ const Footer = () => {
               <p className="text-sm text-muted-foreground">Nhận tin tức và ưu đãi mới nhất từ ZealSun</p>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <Input
-                placeholder="Nhập email của bạn"
-                className="bg-background/10 border-muted-foreground/30 text-background placeholder:text-muted-foreground/50 md:w-72"
-              />
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6">
-                ĐĂNG KÝ
-              </Button>
+              <Input placeholder="Nhập email của bạn" className="bg-background/10 border-muted-foreground/30 text-background placeholder:text-muted-foreground/50 md:w-72" />
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6">ĐĂNG KÝ</Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main footer */}
       <div className="container mx-auto py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company info */}
           <div>
-            <img
-              src="https://theme.hstatic.net/200001032945/1001379709/14/logo.png?v=496"
-              alt="ZealSun"
-              className="h-10 mb-4 brightness-0 invert"
-            />
+            <img src={logo} alt="ZealSun" className="h-10 mb-4 brightness-0 invert" />
             <h4 className="font-bold text-sm mb-3">CÔNG TY TNHH ĐÈN NĂNG LƯỢNG MẶT TRỜI ZEALSUN</h4>
             <div className="space-y-2 text-sm text-background/70">
               <div className="flex items-start gap-2">
@@ -53,7 +42,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Policies */}
           <div>
             <h4 className="font-bold text-sm mb-4">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-background/70">
@@ -65,7 +53,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Guide */}
           <div>
             <h4 className="font-bold text-sm mb-4">HƯỚNG DẪN</h4>
             <ul className="space-y-2 text-sm text-background/70">
@@ -76,7 +63,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Social */}
           <div>
             <h4 className="font-bold text-sm mb-4">KẾT NỐI VỚI CHÚNG TÔI</h4>
             <div className="flex gap-3 mb-4">
@@ -97,12 +83,9 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Copyright */}
       <div className="border-t border-muted-foreground/20">
         <div className="container mx-auto py-4">
-          <p className="text-center text-xs text-background/50">
-            © 2026 ZealSun Solar Light. All rights reserved.
-          </p>
+          <p className="text-center text-xs text-background/50">© 2026 ZealSun Solar Light. All rights reserved.</p>
         </div>
       </div>
     </footer>
