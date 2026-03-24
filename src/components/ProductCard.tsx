@@ -1,5 +1,6 @@
 import { ShoppingCart, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/contexts/CartContext";
 import type { Product } from "@/data/products";
 
 const formatPrice = (price: number) => {
@@ -11,23 +12,32 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { addItem } = useCart();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      image: product.image,
+      price: product.price,
+    });
+  };
+
   return (
     <div className="group bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow relative">
-      {/* Discount badge */}
       {product.discount && (
         <span className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded z-10">
           -{product.discount}%
         </span>
       )}
-
-      {/* Gift icon */}
       {product.hasGift && (
         <span className="absolute top-2 right-2 z-10">
           <Gift className="h-5 w-5 text-primary" />
         </span>
       )}
-
-      {/* Image */}
       <a href={`/products/${product.slug}`} className="block aspect-square overflow-hidden bg-muted p-4">
         <img
           src={product.image}
@@ -35,8 +45,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
         />
       </a>
-
-      {/* Info */}
       <div className="p-3">
         <span className="text-xs text-primary font-medium">{product.brand}</span>
         <a href={`/products/${product.slug}`}>
@@ -56,6 +64,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           className="w-full mt-3 bg-primary hover:bg-primary/90 text-primary-foreground text-sm"
           size="sm"
           disabled={!product.inStock}
+          onClick={handleAddToCart}
         >
           <ShoppingCart className="h-4 w-4 mr-1" />
           {product.inStock ? "Thêm vào giỏ" : "Hết hàng"}

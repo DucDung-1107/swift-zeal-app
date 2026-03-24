@@ -14,6 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string | null
+          product_name: string
+          product_price: number
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id?: string | null
+          product_name: string
+          product_price: number
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string | null
+          product_name?: string
+          product_price?: number
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          invoice_address: string | null
+          invoice_company_name: string | null
+          invoice_email: string | null
+          invoice_requested: boolean
+          invoice_tax_code: string | null
+          notes: string | null
+          phone: string
+          shipping_address: string
+          status: string
+          total: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          invoice_address?: string | null
+          invoice_company_name?: string | null
+          invoice_email?: string | null
+          invoice_requested?: boolean
+          invoice_tax_code?: string | null
+          notes?: string | null
+          phone: string
+          shipping_address: string
+          status?: string
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          invoice_address?: string | null
+          invoice_company_name?: string | null
+          invoice_email?: string | null
+          invoice_requested?: boolean
+          invoice_tax_code?: string | null
+          notes?: string | null
+          phone?: string
+          shipping_address?: string
+          status?: string
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           brand: string
