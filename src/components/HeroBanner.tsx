@@ -5,7 +5,7 @@ import heroBanner from "@/assets/banners/hero-banner.jpg";
 const slides = [
   {
     image: heroBanner,
-    alt: "ZealSun - Giải pháp chiếu sáng năng lượng mặt trời",
+    alt: "Phúc Vinh Solar - Giải pháp chiếu sáng năng lượng mặt trời",
     link: "/collections/all",
   },
 ];
