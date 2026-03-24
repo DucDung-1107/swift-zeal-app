@@ -28,11 +28,10 @@ const Header = () => {
 
   return (
     <header className="w-full bg-background sticky top-0 z-50 shadow-sm">
-      {/* Top bar */}
       <div className="container mx-auto">
         <div className="flex items-center justify-between py-3 gap-4">
           <a href="/" className="flex-shrink-0">
-            <img src={logo} alt="ZealSun Solar Light" className="h-10 md:h-12" />
+            <img src={logo} alt="Phúc Vinh Solar" className="h-10 md:h-12" />
           </a>
 
           <div className="hidden md:flex flex-1 max-w-xl relative">
@@ -80,7 +79,7 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
                 <div className="p-4 border-b">
-                  <img src={logo} alt="ZealSun" className="h-8" />
+                  <img src={logo} alt="Phúc Vinh Solar" className="h-8" />
                 </div>
                 <div className="p-4">
                   <Input placeholder="Tìm kiếm..." className="mb-4" />
