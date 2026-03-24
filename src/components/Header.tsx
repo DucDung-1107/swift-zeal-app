@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Search, User, ShoppingCart, Menu, ChevronDown, Shield, Truck, RefreshCw } from "lucide-react";
+import { Search, User, ShoppingCart, Menu, ChevronDown, Shield, Truck, RefreshCw, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo.png";
 
 const navItems = [
@@ -24,7 +26,8 @@ const navItems = [
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [cartCount] = useState(0);
+  const { user, signOut } = useAuth();
+  const { totalItems, setIsCartOpen } = useCart();
 
   return (
     <header className="w-full bg-background sticky top-0 z-50 shadow-sm">
@@ -48,29 +51,38 @@ const Header = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <a href="/account" className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
-              <User className="h-5 w-5" />
-              <div className="text-left">
-                <div className="text-xs text-muted-foreground">Đăng nhập / Đăng ký</div>
-                <div className="text-sm font-medium">Tài khoản của tôi</div>
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-xs text-muted-foreground">Xin chào</div>
+                  <div className="text-sm font-medium text-foreground">{user.user_metadata?.full_name || user.email}</div>
+                </div>
+                <button onClick={signOut} className="text-muted-foreground hover:text-destructive transition-colors" title="Đăng xuất">
+                  <LogOut className="h-5 w-5" />
+                </button>
               </div>
-            </a>
-            <a href="/cart" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors relative">
+            ) : (
+              <a href="/login" className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors">
+                <User className="h-5 w-5" />
+                <div className="text-left">
+                  <div className="text-xs text-muted-foreground">Đăng nhập / Đăng ký</div>
+                  <div className="text-sm font-medium">Tài khoản của tôi</div>
+                </div>
+              </a>
+            )}
+            <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 text-foreground hover:text-primary transition-colors relative">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount >= 0 && (
-                <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
-              <span className="text-sm font-medium">Giỏ hàng</span>
-            </a>
+              <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                {totalItems}
+              </span>
+            </button>
           </div>
 
           <div className="md:hidden flex items-center gap-2">
-            <a href="/cart" className="relative p-2">
+            <button onClick={() => setIsCartOpen(true)} className="relative p-2">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">{cartCount}</span>
-            </a>
+              <span className="absolute top-0 right-0 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">{totalItems}</span>
+            </button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -83,6 +95,16 @@ const Header = () => {
                 </div>
                 <div className="p-4">
                   <Input placeholder="Tìm kiếm..." className="mb-4" />
+                  {user ? (
+                    <div className="mb-4 pb-4 border-b">
+                      <p className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</p>
+                      <button onClick={signOut} className="text-sm text-destructive mt-1">Đăng xuất</button>
+                    </div>
+                  ) : (
+                    <div className="mb-4 pb-4 border-b">
+                      <a href="/login" className="text-sm text-primary font-medium">Đăng nhập / Đăng ký</a>
+                    </div>
+                  )}
                   <nav className="space-y-1">
                     {navItems.map((item) => (
                       <div key={item.label}>
