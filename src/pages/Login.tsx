@@ -19,11 +19,23 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast({ title: "Đăng nhập thất bại", description: error.message, variant: "destructive" });
     } else {
+      const userId = data.user?.id;
+
+      // Nếu là admin thì đưa thẳng sang màn quản trị.
+      if (userId) {
+        const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+        if (isAdmin) {
+          toast({ title: "Đăng nhập thành công (Admin)!" });
+          navigate("/admin");
+          return;
+        }
+      }
+
       toast({ title: "Đăng nhập thành công!" });
       navigate("/");
     }

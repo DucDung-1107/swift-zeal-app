@@ -7,6 +7,21 @@ const formatPrice = (price: number) => {
   return new Intl.NumberFormat("vi-VN").format(price) + "₫";
 };
 
+const hasDiscount = (product: DbProduct) => (product.discount ?? 0) > 0;
+
+const calcBasePrice = (product: DbProduct) => {
+  // Nếu có giảm giá: dữ liệu cũ có thể dùng `original_price` làm giá gốc.
+  // Nếu không giảm: hiển thị đúng `product.price` theo yêu cầu.
+  return hasDiscount(product) ? (product.original_price ?? product.price) : product.price;
+};
+
+const calcCurrentPrice = (product: DbProduct) => {
+  const base = calcBasePrice(product);
+  const discount = product.discount ?? null;
+  if (!discount || discount <= 0) return base;
+  return Math.round(base * (1 - discount / 100));
+};
+
 interface ProductCardProps {
   product: DbProduct;
 }
@@ -17,18 +32,23 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const currentPrice = calcCurrentPrice(product);
     addItem({
       id: product.id,
       name: product.name,
       slug: product.slug,
       image: product.image_url || "/placeholder.svg",
-      price: product.price,
+      price: currentPrice,
     });
   };
 
+  const basePrice = calcBasePrice(product);
+  const currentPrice = calcCurrentPrice(product);
+  const showDiscount = hasDiscount(product);
+
   return (
     <div className="group bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow relative">
-      {product.discount && (
+      {showDiscount && (
         <span className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold px-2 py-1 rounded z-10">
           -{product.discount}%
         </span>
@@ -53,11 +73,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </h3>
         </a>
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-accent font-bold text-base">{formatPrice(product.price)}</span>
-          {product.original_price && (
-            <span className="text-muted-foreground line-through text-xs">
-              {formatPrice(product.original_price)}
-            </span>
+          {showDiscount ? (
+            <>
+              <span className="text-muted-foreground line-through text-xs">{formatPrice(basePrice)}</span>
+              <span className="text-accent font-bold text-base">{formatPrice(currentPrice)}</span>
+            </>
+          ) : (
+            <span className="text-accent font-bold text-base">{formatPrice(basePrice)}</span>
           )}
         </div>
         <Button

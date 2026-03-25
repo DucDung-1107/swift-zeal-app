@@ -52,6 +52,8 @@ export interface Category {
   name: string;
   image: string;
   slug: string;
+  // `category` là giá trị lưu trong cột `products.category` để lọc dữ liệu.
+  category: string;
 }
 
 export const categories: Category[] = [
@@ -60,24 +62,28 @@ export const categories: Category[] = [
     name: "ĐÈN PHA NLMT",
     image: catFloodlight,
     slug: "den-pha-nang-luong-mat-troi",
+    category: "den-pha",
   },
   {
     id: "2",
     name: "ĐÈN ĐƯỜNG NLMT",
     image: catStreetlight,
     slug: "den-duong-nang-luong-mat-troi",
+    category: "den-duong",
   },
   {
     id: "3",
     name: "ĐÈN NLMT LIỀN THỂ",
     image: catIntegrated,
     slug: "den-nang-luong-mat-troi-lien-the",
+    category: "den-lien-the",
   },
   {
     id: "4",
     name: "ĐÈN NLMT KHẨN CẤP",
     image: catEmergency,
     slug: "den-khan-cap-nang-luong-mat-troi",
+    category: "den-khan-cap",
   },
 ];
 

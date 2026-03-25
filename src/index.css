@@ -15,7 +15,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 160 76% 12%;
 
-    --primary: 161 76% 18%;
+    /* Primary hiện tại hơi tối; làm sáng hơn để UI nhìn "thân thiện" hơn */
+    --primary: 161 76% 30%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 93%;
@@ -32,23 +33,23 @@
 
     --border: 0 0% 87%;
     --input: 0 0% 87%;
-    --ring: 161 76% 18%;
+    --ring: 161 76% 30%;
 
     --radius: 0.375rem;
 
-    --pv-green: 161 76% 18%;
+    --pv-green: 161 76% 30%;
     --pv-gold: 45 74% 63%;
     --pv-light: 0 0% 93%;
     --pv-dark: 160 76% 12%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 161 76% 18%;
+    --sidebar-primary: 161 76% 30%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 161 76% 18%;
+    --sidebar-ring: 161 76% 30%;
   }
 
   .dark {
@@ -58,7 +59,7 @@
     --card-foreground: 0 0% 95%;
     --popover: 160 20% 10%;
     --popover-foreground: 0 0% 95%;
-    --primary: 161 76% 18%;
+    --primary: 161 76% 28%;
     --primary-foreground: 0 0% 100%;
     --secondary: 160 10% 15%;
     --secondary-foreground: 0 0% 95%;
@@ -70,7 +71,7 @@
     --destructive-foreground: 0 0% 95%;
     --border: 160 10% 20%;
     --input: 160 10% 20%;
-    --ring: 161 76% 18%;
+    --ring: 161 76% 28%;
   }
 }
 

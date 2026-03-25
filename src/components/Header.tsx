@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, User, ShoppingCart, Menu, ChevronDown, Shield, Truck, RefreshCw, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,17 +6,20 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo.png";
+import { categories } from "@/data/products";
+import { supabase } from "@/integrations/supabase/client";
+import { useServices } from "@/hooks/useServices";
 
 const navItems = [
   { label: "TRANG CHỦ", href: "/" },
   {
     label: "SẢN PHẨM",
-    href: "/collections",
+    href: "/collections/all",
     children: [
-      { label: "Đèn Pha NLMT", href: "/collections/den-pha" },
-      { label: "Đèn Đường NLMT", href: "/collections/den-duong" },
-      { label: "Đèn NLMT Liền Thể", href: "/collections/den-lien-the" },
-      { label: "Đèn NLMT Khẩn Cấp", href: "/collections/den-khan-cap" },
+      ...categories.map((cat) => ({
+        label: cat.name,
+        href: `/collections/${cat.slug}`,
+      })),
     ],
   },
   { label: "BLOG", href: "/blog" },
@@ -28,6 +31,24 @@ const Header = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const { user, signOut } = useAuth();
   const { totalItems, setIsCartOpen } = useCart();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { data: services } = useServices();
+
+  useEffect(() => {
+    let mounted = true;
+    const checkAdmin = async () => {
+      if (!user) {
+        if (mounted) setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+      if (mounted) setIsAdmin(!!data);
+    };
+    checkAdmin();
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
 
   return (
     <header className="w-full bg-background sticky top-0 z-50 shadow-sm">
@@ -57,6 +78,11 @@ const Header = () => {
                   <div className="text-xs text-muted-foreground">Xin chào</div>
                   <div className="text-sm font-medium text-foreground">{user.user_metadata?.full_name || user.email}</div>
                 </div>
+                {isAdmin && (
+                  <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
+                    <a href="/admin">Management</a>
+                  </Button>
+                )}
                 <button onClick={signOut} className="text-muted-foreground hover:text-destructive transition-colors" title="Đăng xuất">
                   <LogOut className="h-5 w-5" />
                 </button>
@@ -98,6 +124,11 @@ const Header = () => {
                   {user ? (
                     <div className="mb-4 pb-4 border-b">
                       <p className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</p>
+                      {isAdmin && (
+                        <a href="/admin" className="block text-sm text-primary font-medium mt-2 hover:underline">
+                          Management
+                        </a>
+                      )}
                       <button onClick={signOut} className="text-sm text-destructive mt-1">Đăng xuất</button>
                     </div>
                   ) : (
@@ -130,18 +161,22 @@ const Header = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-6 pb-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <Shield className="h-4 w-4 text-primary" />
-            <span>CHỨNG NHẬN ISO QUỐC TẾ</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Truck className="h-4 w-4 text-primary" />
-            <span>VẬN CHUYỂN TOÀN QUỐC</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <RefreshCw className="h-4 w-4 text-primary" />
-            <span>BẢO HÀNH ĐỔI MỚI 2 NĂM</span>
-          </div>
+          {(services ?? []).slice(0, 3).map((s) => {
+            const icon =
+              s.icon_key === "truck" ? (
+                <Truck className="h-4 w-4 text-primary" />
+              ) : s.icon_key === "refresh" ? (
+                <RefreshCw className="h-4 w-4 text-primary" />
+              ) : (
+                <Shield className="h-4 w-4 text-primary" />
+              );
+            return (
+              <div key={s.id} className="flex items-center gap-1.5">
+                {icon}
+                <span>{s.title}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -10,6 +10,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN").format(price) + "₫";
 
+const hasDiscount = (product: any) => (product.discount ?? 0) > 0;
+
+const calcBasePrice = (product: any) => {
+  // Nếu có giảm giá: dữ liệu cũ có thể dùng `original_price` làm giá gốc.
+  // Nếu không giảm: hiển thị theo đúng `product.price`.
+  return hasDiscount(product) ? (product.original_price ?? product.price) : product.price;
+};
+
+const calcCurrentPrice = (product: any) => {
+  const base = calcBasePrice(product);
+  const discount = product.discount ?? null;
+  if (!discount || discount <= 0) return base;
+  return Math.round(base * (1 - discount / 100));
+};
+
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -19,8 +34,9 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
     if (!product) return;
+    const currentPrice = calcCurrentPrice(product);
     addItem(
-      { id: product.id, name: product.name, slug: product.slug, image: product.image_url || "/placeholder.svg", price: product.price },
+      { id: product.id, name: product.name, slug: product.slug, image: product.image_url || "/placeholder.svg", price: currentPrice },
       quantity
     );
   };
@@ -67,10 +83,18 @@ const ProductDetail = () => {
           <div>
             <span className="text-sm text-accent font-medium">{product.brand}</span>
             <h1 className="text-2xl font-bold text-foreground mt-1">{product.name}</h1>
-            <div className="flex items-center gap-3 mt-4">
-              <span className="text-3xl font-bold text-accent">{formatPrice(product.price)}</span>
-              {product.original_price && <span className="text-lg text-muted-foreground line-through">{formatPrice(product.original_price)}</span>}
-              {product.discount && <span className="bg-destructive text-destructive-foreground text-sm font-bold px-2 py-1 rounded">-{product.discount}%</span>}
+            <div className="flex flex-wrap items-center gap-3 mt-4">
+              {hasDiscount(product) ? (
+                <>
+                  <span className="text-lg text-muted-foreground line-through">{formatPrice(calcBasePrice(product))}</span>
+                  <span className="text-xl md:text-2xl font-bold text-accent">{formatPrice(calcCurrentPrice(product))}</span>
+                  <span className="bg-destructive text-destructive-foreground text-sm font-bold px-2 py-1 rounded">-{product.discount}%</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-3xl font-bold text-accent">{formatPrice(product.price)}</span>
+                </>
+              )}
             </div>
             {product.has_gift && (
               <div className="mt-4 p-3 bg-accent/10 rounded-lg border border-accent/20 flex items-center gap-2">
