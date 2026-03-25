@@ -1,99 +1,99 @@
-import { useParams } from "react-router-dom";
-import { ShoppingCart, Gift, Truck, Shield, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ShoppingCart, Minus, Plus, ArrowLeft, Gift, Truck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { topProducts, newCollectionProducts } from "@/data/products";
 import { useCart } from "@/contexts/CartContext";
-import { useState } from "react";
-
-const allProducts = [...topProducts, ...newCollectionProducts];
+import { useProduct } from "@/hooks/useProducts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN").format(price) + "₫";
 
 const ProductDetail = () => {
-  const { slug } = useParams();
-  const { addItem } = useCart();
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
+  const { addItem } = useCart();
+  const { data: product, isLoading } = useProduct(slug || "");
 
-  const product = allProducts.find((p) => p.slug === slug);
+  const handleAddToCart = () => {
+    if (!product) return;
+    addItem(
+      { id: product.id, name: product.name, slug: product.slug, image: product.image_url || "/placeholder.svg", price: product.price },
+      quantity
+    );
+  };
 
-  if (!product) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="container mx-auto py-20 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Không tìm thấy sản phẩm</h1>
-          <a href="/" className="text-primary hover:underline mt-4 inline-block">Quay lại trang chủ</a>
+        <div className="container mx-auto py-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            <Skeleton className="aspect-square rounded-lg" />
+            <div className="space-y-4"><Skeleton className="h-8 w-3/4" /><Skeleton className="h-6 w-1/2" /><Skeleton className="h-10 w-full" /></div>
+          </div>
         </div>
         <Footer />
       </div>
     );
   }
 
-  const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-        image: product.image,
-        price: product.price,
-      });
-    }
-  };
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto py-16 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Sản phẩm không tồn tại</h1>
+          <Button onClick={() => navigate("/")} variant="outline"><ArrowLeft className="h-4 w-4 mr-2" />Về trang chủ</Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto py-8 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Image */}
+      <div className="container mx-auto py-8">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
+          <ArrowLeft className="h-4 w-4" />Quay lại
+        </button>
+        <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-card rounded-lg border p-8 flex items-center justify-center">
-            <img src={product.image} alt={product.name} className="max-h-96 object-contain" />
+            <img src={product.image_url || "/placeholder.svg"} alt={product.name} className="max-w-full max-h-[500px] object-contain" />
           </div>
-
-          {/* Info */}
           <div>
-            <span className="text-sm text-primary font-medium">{product.brand}</span>
+            <span className="text-sm text-accent font-medium">{product.brand}</span>
             <h1 className="text-2xl font-bold text-foreground mt-1">{product.name}</h1>
-
             <div className="flex items-center gap-3 mt-4">
-              <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
-              {product.originalPrice && (
-                <span className="text-lg text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
-              )}
-              {product.discount && (
-                <span className="bg-destructive text-destructive-foreground text-sm font-bold px-2 py-1 rounded">-{product.discount}%</span>
-              )}
+              <span className="text-3xl font-bold text-accent">{formatPrice(product.price)}</span>
+              {product.original_price && <span className="text-lg text-muted-foreground line-through">{formatPrice(product.original_price)}</span>}
+              {product.discount && <span className="bg-destructive text-destructive-foreground text-sm font-bold px-2 py-1 rounded">-{product.discount}%</span>}
             </div>
-
-            {product.hasGift && (
-              <div className="flex items-center gap-2 mt-3 text-sm text-primary">
-                <Gift className="h-4 w-4" />
-                <span>Tặng kèm quà tặng</span>
+            {product.has_gift && (
+              <div className="mt-4 p-3 bg-accent/10 rounded-lg border border-accent/20 flex items-center gap-2">
+                <Gift className="h-5 w-5 text-accent" /><span className="text-sm font-medium text-foreground">Quà tặng kèm theo</span>
               </div>
             )}
-
-            <div className="mt-6 space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /><span>Bảo hành 2 năm chính hãng</span></div>
-              <div className="flex items-center gap-2"><Truck className="h-4 w-4 text-primary" /><span>Miễn phí vận chuyển toàn quốc</span></div>
-              <div className="flex items-center gap-2"><RefreshCw className="h-4 w-4 text-primary" /><span>Đổi trả trong 7 ngày</span></div>
-            </div>
-
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-6 flex items-center gap-4">
+              <span className="text-sm font-medium text-foreground">Số lượng:</span>
               <div className="flex items-center border rounded-md">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-lg hover:bg-muted">−</button>
-                <span className="px-4 py-2 text-sm font-medium">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-2 text-lg hover:bg-muted">+</button>
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="p-2 hover:bg-muted"><Minus className="h-4 w-4" /></button>
+                <span className="px-4 py-2 border-x font-medium">{quantity}</span>
+                <button onClick={() => setQuantity(quantity + 1)} className="p-2 hover:bg-muted"><Plus className="h-4 w-4" /></button>
               </div>
-              <span className="text-sm text-muted-foreground">{product.inStock ? "Còn hàng" : "Hết hàng"}</span>
             </div>
-
-            <Button onClick={handleAddToCart} className="w-full mt-6" size="lg" disabled={!product.inStock}>
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Thêm vào giỏ hàng
-            </Button>
+            <div className="mt-6 flex gap-3">
+              <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={!product.in_stock}>
+                <ShoppingCart className="h-5 w-5 mr-2" />{product.in_stock ? "Thêm vào giỏ hàng" : "Hết hàng"}
+              </Button>
+            </div>
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground"><Truck className="h-5 w-5 text-primary" />Giao hàng toàn quốc</div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground"><Shield className="h-5 w-5 text-primary" />Bảo hành chính hãng 2 năm</div>
+            </div>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ const FloatingActions = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
       <a
-        href="tel:0982557664"
+        href="tel:0911915398"
         className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
         aria-label="Gọi điện"
       >
