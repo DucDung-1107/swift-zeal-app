@@ -172,10 +172,6 @@ const Header = () => {
                 </div>
               ))}
             </div>
-            <a href="/live" className="flex items-center gap-2 px-4 py-2 border border-muted-foreground/30 rounded-md text-sm text-background hover:border-primary hover:text-primary transition-colors">
-              <span className="h-2 w-2 bg-destructive rounded-full animate-pulse" />
-              Live stream
-            </a>
           </div>
         </div>
       </nav>

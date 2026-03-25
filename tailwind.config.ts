@@ -47,12 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        zealsun: {
-          orange: "hsl(var(--zealsun-orange))",
-          dark: "hsl(var(--zealsun-dark))",
-          gray: "hsl(var(--zealsun-gray))",
-          "light-gray": "hsl(var(--zealsun-light-gray))",
-          red: "hsl(var(--zealsun-red))",
+        pv: {
+          green: "hsl(var(--pv-green))",
+          gold: "hsl(var(--pv-gold))",
+          light: "hsl(var(--pv-light))",
+          dark: "hsl(var(--pv-dark))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
