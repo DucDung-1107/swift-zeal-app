@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2 } from "lucide-react";
+import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
 import { categories, blogPosts as staticBlogPosts } from "@/data/products";
@@ -55,7 +55,7 @@ const Admin = () => {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts">("products");
+  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages">("products");
 
   // Products state
   const [products, setProducts] = useState<DbProduct[]>([]);
@@ -118,6 +118,19 @@ const Admin = () => {
     content: "",
   });
 
+  // Pages state
+  type PageRow = { id: string; title: string; slug: string; content: string; sort_order: number | null; created_at?: string };
+  const [pages, setPages] = useState<PageRow[]>([]);
+  const [loadingPages, setLoadingPages] = useState(false);
+  const [editingPage, setEditingPage] = useState<PageRow | null>(null);
+  const [showPageForm, setShowPageForm] = useState(false);
+  const [pageForm, setPageForm] = useState<{ title: string; slug: string; content: string; sort_order: number }>({
+    title: "",
+    slug: "",
+    content: "",
+    sort_order: 0,
+  });
+
   // Latest posts panel (dashboard)
   const [latestPosts, setLatestPosts] = useState<BlogPostRow[]>([]);
 
@@ -160,7 +173,8 @@ const Admin = () => {
     else if (tab === "orders") fetchOrders();
     else if (tab === "users") fetchUsers();
     else if (tab === "services") fetchServices();
-    else fetchPosts();
+    else if (tab === "posts") fetchPosts();
+    else if (tab === "pages") fetchPages();
   }, [isAdmin, tab]);
 
   const fetchProducts = async () => {
@@ -613,6 +627,64 @@ const Admin = () => {
     }
   };
 
+  // Pages CRUD
+  const fetchPages = async () => {
+    setLoadingPages(true);
+    try {
+      const { data, error } = await supabaseAny.from("pages").select("*").order("sort_order", { ascending: true });
+      if (error) throw error;
+      setPages((data || []) as PageRow[]);
+    } catch (e: any) {
+      toast({ title: "Lỗi tải trang", description: e?.message, variant: "destructive" });
+      setPages([]);
+    } finally {
+      setLoadingPages(false);
+    }
+  };
+
+  const openNewPage = () => {
+    setEditingPage(null);
+    setPageForm({ title: "", slug: "", content: "", sort_order: 0 });
+    setShowPageForm(true);
+  };
+
+  const openEditPage = (p: PageRow) => {
+    setEditingPage(p);
+    setPageForm({ title: p.title, slug: p.slug, content: p.content || "", sort_order: p.sort_order ?? 0 });
+    setShowPageForm(true);
+  };
+
+  const savePage = async () => {
+    const payload = { title: pageForm.title.trim(), slug: pageForm.slug.trim(), content: pageForm.content, sort_order: pageForm.sort_order };
+    try {
+      if (editingPage) {
+        const { error } = await supabaseAny.from("pages").update(payload).eq("id", editingPage.id);
+        if (error) throw error;
+        toast({ title: "Đã cập nhật trang" });
+      } else {
+        const { error } = await supabaseAny.from("pages").insert(payload);
+        if (error) throw error;
+        toast({ title: "Đã thêm trang mới" });
+      }
+      setShowPageForm(false);
+      fetchPages();
+    } catch (e: any) {
+      toast({ title: "Lỗi lưu trang", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  const deletePage = async (id: string) => {
+    if (!confirm("Xác nhận xóa trang?")) return;
+    try {
+      const { error } = await supabaseAny.from("pages").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Đã xóa trang" });
+      fetchPages();
+    } catch (e: any) {
+      toast({ title: "Lỗi xóa trang", description: e?.message, variant: "destructive" });
+    }
+  };
+
   if (loading || checking) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   if (!isAdmin) return null;
 
@@ -638,6 +710,9 @@ const Admin = () => {
             <button onClick={() => setTab("posts")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "posts" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <FileText className="h-5 w-5" />Bài đăng
             </button>
+            <button onClick={() => setTab("pages")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "pages" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
+              <FileEdit className="h-5 w-5" />Trang nội dung
+            </button>
           </nav>
           <div className="mt-auto pt-8 space-y-2">
             <a href="/" className="flex items-center gap-2 text-sm hover:underline"><Home className="h-4 w-4" />Về trang chủ</a>
@@ -653,6 +728,7 @@ const Admin = () => {
             <Button variant={tab === "users" ? "default" : "outline"} size="sm" onClick={() => setTab("users")}><User2 className="h-4 w-4 mr-1" />Người dùng</Button>
             <Button variant={tab === "services" ? "default" : "outline"} size="sm" onClick={() => setTab("services")}><Truck className="h-4 w-4 mr-1" />Dịch vụ</Button>
             <Button variant={tab === "posts" ? "default" : "outline"} size="sm" onClick={() => setTab("posts")}><FileText className="h-4 w-4 mr-1" />Bài đăng</Button>
+            <Button variant={tab === "pages" ? "default" : "outline"} size="sm" onClick={() => setTab("pages")}><FileEdit className="h-4 w-4 mr-1" />Trang</Button>
             <a href="/" className="ml-auto"><Button variant="ghost" size="sm"><Home className="h-4 w-4" /></Button></a>
           </div>
 
@@ -1133,6 +1209,74 @@ const Admin = () => {
                 </table>
                 {posts.length === 0 && !loadingPosts && (
                   <div className="p-8 text-center text-muted-foreground">Chưa có bài đăng</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {tab === "pages" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Trang nội dung ({pages.length})</h2>
+                <Button onClick={openNewPage}><Plus className="h-4 w-4 mr-1" />Thêm trang</Button>
+              </div>
+
+              {showPageForm && (
+                <div className="bg-card border rounded-lg p-6 mb-6">
+                  <h3 className="font-bold text-foreground mb-4">{editingPage ? "Sửa trang" : "Thêm trang mới"}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Tiêu đề *</label>
+                      <Input className="mt-2" value={pageForm.title} onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Slug *</label>
+                      <Input className="mt-2" value={pageForm.slug} onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })} placeholder="vd: chinh-sach-bao-hanh" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Thứ tự</label>
+                      <Input className="mt-2" type="number" value={pageForm.sort_order} onChange={(e) => setPageForm({ ...pageForm, sort_order: Number(e.target.value) })} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-foreground">Nội dung</label>
+                      <Textarea className="mt-2" value={pageForm.content} onChange={(e) => setPageForm({ ...pageForm, content: e.target.value })} rows={10} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={savePage}>Lưu</Button>
+                    <Button variant="outline" onClick={() => setShowPageForm(false)}>Hủy</Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-card border rounded-lg overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left p-3 font-medium text-foreground">Tiêu đề</th>
+                      <th className="text-left p-3 font-medium text-foreground">Slug</th>
+                      <th className="text-left p-3 font-medium text-foreground">Thứ tự</th>
+                      <th className="text-right p-3 font-medium text-foreground">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pages.map((p) => (
+                      <tr key={p.id} className="border-t">
+                        <td className="p-3 font-medium text-foreground">{p.title}</td>
+                        <td className="p-3 text-muted-foreground font-mono text-xs">{p.slug}</td>
+                        <td className="p-3 text-muted-foreground">{p.sort_order ?? 0}</td>
+                        <td className="p-3 text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openEditPage(p)}><Pencil className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => deletePage(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {pages.length === 0 && !loadingPages && (
+                  <div className="p-8 text-center text-muted-foreground">Chưa có trang nào</div>
                 )}
               </div>
             </div>

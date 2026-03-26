@@ -16,6 +16,7 @@ import Collections from "./pages/Collections.tsx";
 import Blog from "./pages/Blog.tsx";
 import BlogDetail from "./pages/BlogDetail.tsx";
 import About from "./pages/About.tsx";
+import PageDetail from "./pages/PageDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogDetail />} />
               <Route path="/gioi-thieu" element={<About />} />
+              <Route path="/p/:slug" element={<PageDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
