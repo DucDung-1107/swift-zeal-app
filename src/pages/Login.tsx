@@ -73,10 +73,13 @@ const Login = () => {
               {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
             </Button>
           </form>
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Chưa có tài khoản?{" "}
-            <Link to="/signup" className="text-primary hover:underline font-medium">Đăng ký ngay</Link>
-          </p>
+          <div className="text-center mt-4 space-y-2">
+            <Link to="/forgot-password" className="block text-sm text-primary hover:underline font-medium">Quên mật khẩu?</Link>
+            <p className="text-sm text-muted-foreground">
+              Chưa có tài khoản?{" "}
+              <Link to="/signup" className="text-primary hover:underline font-medium">Đăng ký ngay</Link>
+            </p>
+          </div>
         </div>
       </div>
       <Footer />
