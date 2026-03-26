@@ -1213,6 +1213,74 @@ const Admin = () => {
               </div>
             </div>
           )}
+
+          {tab === "pages" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Trang nội dung ({pages.length})</h2>
+                <Button onClick={openNewPage}><Plus className="h-4 w-4 mr-1" />Thêm trang</Button>
+              </div>
+
+              {showPageForm && (
+                <div className="bg-card border rounded-lg p-6 mb-6">
+                  <h3 className="font-bold text-foreground mb-4">{editingPage ? "Sửa trang" : "Thêm trang mới"}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Tiêu đề *</label>
+                      <Input className="mt-2" value={pageForm.title} onChange={(e) => setPageForm({ ...pageForm, title: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Slug *</label>
+                      <Input className="mt-2" value={pageForm.slug} onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })} placeholder="vd: chinh-sach-bao-hanh" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Thứ tự</label>
+                      <Input className="mt-2" type="number" value={pageForm.sort_order} onChange={(e) => setPageForm({ ...pageForm, sort_order: Number(e.target.value) })} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-foreground">Nội dung</label>
+                      <Textarea className="mt-2" value={pageForm.content} onChange={(e) => setPageForm({ ...pageForm, content: e.target.value })} rows={10} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={savePage}>Lưu</Button>
+                    <Button variant="outline" onClick={() => setShowPageForm(false)}>Hủy</Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-card border rounded-lg overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left p-3 font-medium text-foreground">Tiêu đề</th>
+                      <th className="text-left p-3 font-medium text-foreground">Slug</th>
+                      <th className="text-left p-3 font-medium text-foreground">Thứ tự</th>
+                      <th className="text-right p-3 font-medium text-foreground">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pages.map((p) => (
+                      <tr key={p.id} className="border-t">
+                        <td className="p-3 font-medium text-foreground">{p.title}</td>
+                        <td className="p-3 text-muted-foreground font-mono text-xs">{p.slug}</td>
+                        <td className="p-3 text-muted-foreground">{p.sort_order ?? 0}</td>
+                        <td className="p-3 text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openEditPage(p)}><Pencil className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => deletePage(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {pages.length === 0 && !loadingPages && (
+                  <div className="p-8 text-center text-muted-foreground">Chưa có trang nào</div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
