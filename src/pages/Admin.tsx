@@ -627,6 +627,64 @@ const Admin = () => {
     }
   };
 
+  // Pages CRUD
+  const fetchPages = async () => {
+    setLoadingPages(true);
+    try {
+      const { data, error } = await supabaseAny.from("pages").select("*").order("sort_order", { ascending: true });
+      if (error) throw error;
+      setPages((data || []) as PageRow[]);
+    } catch (e: any) {
+      toast({ title: "Lỗi tải trang", description: e?.message, variant: "destructive" });
+      setPages([]);
+    } finally {
+      setLoadingPages(false);
+    }
+  };
+
+  const openNewPage = () => {
+    setEditingPage(null);
+    setPageForm({ title: "", slug: "", content: "", sort_order: 0 });
+    setShowPageForm(true);
+  };
+
+  const openEditPage = (p: PageRow) => {
+    setEditingPage(p);
+    setPageForm({ title: p.title, slug: p.slug, content: p.content || "", sort_order: p.sort_order ?? 0 });
+    setShowPageForm(true);
+  };
+
+  const savePage = async () => {
+    const payload = { title: pageForm.title.trim(), slug: pageForm.slug.trim(), content: pageForm.content, sort_order: pageForm.sort_order };
+    try {
+      if (editingPage) {
+        const { error } = await supabaseAny.from("pages").update(payload).eq("id", editingPage.id);
+        if (error) throw error;
+        toast({ title: "Đã cập nhật trang" });
+      } else {
+        const { error } = await supabaseAny.from("pages").insert(payload);
+        if (error) throw error;
+        toast({ title: "Đã thêm trang mới" });
+      }
+      setShowPageForm(false);
+      fetchPages();
+    } catch (e: any) {
+      toast({ title: "Lỗi lưu trang", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  const deletePage = async (id: string) => {
+    if (!confirm("Xác nhận xóa trang?")) return;
+    try {
+      const { error } = await supabaseAny.from("pages").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Đã xóa trang" });
+      fetchPages();
+    } catch (e: any) {
+      toast({ title: "Lỗi xóa trang", description: e?.message, variant: "destructive" });
+    }
+  };
+
   if (loading || checking) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   if (!isAdmin) return null;
 
@@ -652,6 +710,9 @@ const Admin = () => {
             <button onClick={() => setTab("posts")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "posts" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <FileText className="h-5 w-5" />Bài đăng
             </button>
+            <button onClick={() => setTab("pages")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "pages" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
+              <FileEdit className="h-5 w-5" />Trang nội dung
+            </button>
           </nav>
           <div className="mt-auto pt-8 space-y-2">
             <a href="/" className="flex items-center gap-2 text-sm hover:underline"><Home className="h-4 w-4" />Về trang chủ</a>
@@ -667,6 +728,7 @@ const Admin = () => {
             <Button variant={tab === "users" ? "default" : "outline"} size="sm" onClick={() => setTab("users")}><User2 className="h-4 w-4 mr-1" />Người dùng</Button>
             <Button variant={tab === "services" ? "default" : "outline"} size="sm" onClick={() => setTab("services")}><Truck className="h-4 w-4 mr-1" />Dịch vụ</Button>
             <Button variant={tab === "posts" ? "default" : "outline"} size="sm" onClick={() => setTab("posts")}><FileText className="h-4 w-4 mr-1" />Bài đăng</Button>
+            <Button variant={tab === "pages" ? "default" : "outline"} size="sm" onClick={() => setTab("pages")}><FileEdit className="h-4 w-4 mr-1" />Trang</Button>
             <a href="/" className="ml-auto"><Button variant="ghost" size="sm"><Home className="h-4 w-4" /></Button></a>
           </div>
 
