@@ -5,11 +5,24 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.trim();
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
-export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+const isValidHttpUrl = (value?: string) => {
+  if (!value) return false;
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+const hasValidUrl = isValidHttpUrl(SUPABASE_URL);
+
+export const isSupabaseConfigured = Boolean(hasValidUrl && SUPABASE_PUBLISHABLE_KEY);
 
 if (!isSupabaseConfigured) {
   console.error(
-    "Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. Add them in Vercel Project Settings > Environment Variables.",
+    "Invalid or missing Supabase env. Ensure VITE_SUPABASE_URL is a full http(s) URL and VITE_SUPABASE_PUBLISHABLE_KEY is set.",
   );
 }
 
@@ -17,7 +30,7 @@ if (!isSupabaseConfigured) {
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL || "https://example.supabase.co",
+  (hasValidUrl ? SUPABASE_URL : undefined) || "https://example.supabase.co",
   SUPABASE_PUBLISHABLE_KEY || "public-anon-key-not-configured",
   {
     auth: {

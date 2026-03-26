@@ -1,7 +1,7 @@
 import { Mail, Phone, MapPin, Facebook, Youtube } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
+import logo from "/logo.png";
 
 const Footer = () => {
   return (
@@ -24,7 +24,7 @@ const Footer = () => {
       <div className="container mx-auto py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <img src={logo} alt="Phúc Vinh Solar" className="h-10 mb-4 brightness-0 invert" />
+            <img src={logo} alt="Phúc Vinh Solar" className="h-10 mb-4" />
             <h4 className="font-bold text-sm mb-3">CÔNG TY TNHH PHÚC VINH SOLAR</h4>
             <div className="space-y-2 text-sm text-background/70">
               <div className="flex items-start gap-2">

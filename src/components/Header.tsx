@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import logo from "@/assets/logo.png";
+import logo from "/logo.png";
 import { categories } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
