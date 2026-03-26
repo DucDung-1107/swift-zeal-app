@@ -9,6 +9,9 @@ import CartDrawer from "@/components/CartDrawer";
 import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
+import MyOrders from "./pages/MyOrders.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import Checkout from "./pages/Checkout.tsx";
 import Admin from "./pages/Admin.tsx";
@@ -34,6 +37,9 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/my-orders" element={<MyOrders />} />
               <Route path="/products/:slug" element={<ProductDetail />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/admin" element={<Admin />} />

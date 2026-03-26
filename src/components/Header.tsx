@@ -83,6 +83,9 @@ const Header = () => {
                     <a href="/admin">Management</a>
                   </Button>
                 )}
+                <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+                  <a href="/my-orders">Đơn hàng</a>
+                </Button>
                 <button onClick={signOut} className="text-muted-foreground hover:text-destructive transition-colors" title="Đăng xuất">
                   <LogOut className="h-5 w-5" />
                 </button>
@@ -129,6 +132,9 @@ const Header = () => {
                           Management
                         </a>
                       )}
+                      <a href="/my-orders" className="block text-sm text-primary font-medium mt-2 hover:underline">
+                        Đơn hàng của tôi
+                      </a>
                       <button onClick={signOut} className="text-sm text-destructive mt-1">Đăng xuất</button>
                     </div>
                   ) : (
