@@ -118,6 +118,19 @@ const Admin = () => {
     content: "",
   });
 
+  // Pages state
+  type PageRow = { id: string; title: string; slug: string; content: string; sort_order: number | null; created_at?: string };
+  const [pages, setPages] = useState<PageRow[]>([]);
+  const [loadingPages, setLoadingPages] = useState(false);
+  const [editingPage, setEditingPage] = useState<PageRow | null>(null);
+  const [showPageForm, setShowPageForm] = useState(false);
+  const [pageForm, setPageForm] = useState<{ title: string; slug: string; content: string; sort_order: number }>({
+    title: "",
+    slug: "",
+    content: "",
+    sort_order: 0,
+  });
+
   // Latest posts panel (dashboard)
   const [latestPosts, setLatestPosts] = useState<BlogPostRow[]>([]);
 
