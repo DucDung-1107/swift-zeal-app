@@ -173,7 +173,8 @@ const Admin = () => {
     else if (tab === "orders") fetchOrders();
     else if (tab === "users") fetchUsers();
     else if (tab === "services") fetchServices();
-    else fetchPosts();
+    else if (tab === "posts") fetchPosts();
+    else if (tab === "pages") fetchPages();
   }, [isAdmin, tab]);
 
   const fetchProducts = async () => {
