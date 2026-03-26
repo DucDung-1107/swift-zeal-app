@@ -50,21 +50,21 @@ const Footer = () => {
           <div>
             <h4 className="font-bold text-sm mb-4">CHÍNH SÁCH</h4>
             <ul className="space-y-2 text-sm text-background/70">
-              <li><a href="/chinh-sach-bao-hanh" className="hover:text-primary transition-colors">Chính sách bảo hành</a></li>
-              <li><a href="/chinh-sach-doi-tra" className="hover:text-primary transition-colors">Chính sách đổi trả</a></li>
-              <li><a href="/chinh-sach-van-chuyen" className="hover:text-primary transition-colors">Chính sách vận chuyển</a></li>
-              <li><a href="/chinh-sach-bao-mat" className="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
-              <li><a href="/dieu-khoan-dich-vu" className="hover:text-primary transition-colors">Điều khoản dịch vụ</a></li>
+              <li><a href="/p/chinh-sach-bao-hanh" className="hover:text-primary transition-colors">Chính sách bảo hành</a></li>
+              <li><a href="/p/chinh-sach-doi-tra" className="hover:text-primary transition-colors">Chính sách đổi trả</a></li>
+              <li><a href="/p/chinh-sach-van-chuyen" className="hover:text-primary transition-colors">Chính sách vận chuyển</a></li>
+              <li><a href="/p/chinh-sach-bao-mat" className="hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+              <li><a href="/p/dieu-khoan-dich-vu" className="hover:text-primary transition-colors">Điều khoản dịch vụ</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-sm mb-4">HƯỚNG DẪN</h4>
             <ul className="space-y-2 text-sm text-background/70">
-              <li><a href="/huong-dan-mua-hang" className="hover:text-primary transition-colors">Hướng dẫn mua hàng</a></li>
-              <li><a href="/huong-dan-thanh-toan" className="hover:text-primary transition-colors">Hướng dẫn thanh toán</a></li>
-              <li><a href="/huong-dan-lap-dat" className="hover:text-primary transition-colors">Hướng dẫn lắp đặt</a></li>
-              <li><a href="/lien-he" className="hover:text-primary transition-colors">Liên hệ</a></li>
+              <li><a href="/p/huong-dan-mua-hang" className="hover:text-primary transition-colors">Hướng dẫn mua hàng</a></li>
+              <li><a href="/p/huong-dan-thanh-toan" className="hover:text-primary transition-colors">Hướng dẫn thanh toán</a></li>
+              <li><a href="/p/huong-dan-lap-dat" className="hover:text-primary transition-colors">Hướng dẫn lắp đặt</a></li>
+              <li><a href="/p/lien-he" className="hover:text-primary transition-colors">Liên hệ</a></li>
             </ul>
           </div>
 
