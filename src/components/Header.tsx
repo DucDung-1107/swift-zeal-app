@@ -55,7 +55,7 @@ const Header = () => {
       <div className="container mx-auto">
         <div className="flex items-center justify-between py-3 gap-4">
           <a href="/" className="flex-shrink-0">
-            <img src={logo} alt="Phúc Vinh Solar" className="h-10 md:h-12" />
+            <img src={logo} alt="Phúc Vinh Solar" className="h-16 md:h-16" />
           </a>
 
           <div className="hidden md:flex flex-1 max-w-xl relative">
