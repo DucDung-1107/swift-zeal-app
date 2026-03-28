@@ -148,6 +148,7 @@ export type Database = {
           brand: string
           category: string
           created_at: string
+          description: string | null
           discount: number | null
           has_gift: boolean | null
           id: string
@@ -156,6 +157,7 @@ export type Database = {
           name: string
           original_price: number | null
           price: number
+          sku: string | null
           slug: string
           updated_at: string
         }
@@ -163,6 +165,7 @@ export type Database = {
           brand?: string
           category: string
           created_at?: string
+          description?: string | null
           discount?: number | null
           has_gift?: boolean | null
           id?: string
@@ -171,6 +174,7 @@ export type Database = {
           name: string
           original_price?: number | null
           price: number
+          sku?: string | null
           slug: string
           updated_at?: string
         }
@@ -178,6 +182,7 @@ export type Database = {
           brand?: string
           category?: string
           created_at?: string
+          description?: string | null
           discount?: number | null
           has_gift?: boolean | null
           id?: string
@@ -186,6 +191,7 @@ export type Database = {
           name?: string
           original_price?: number | null
           price?: number
+          sku?: string | null
           slug?: string
           updated_at?: string
         }

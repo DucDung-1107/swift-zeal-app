@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit } from "lucide-react";
+import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2 } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
 import { categories, blogPosts as staticBlogPosts } from "@/data/products";
@@ -71,7 +71,12 @@ const Admin = () => {
     discount: "",
     image_url: "",
     image_file: null as File | null,
+    sku: "",
+    description: "",
+    in_stock: true,
   });
+  const [zealsunUrl, setZealsunUrl] = useState("");
+  const [importingZealsun, setImportingZealsun] = useState(false);
 
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
@@ -343,8 +348,40 @@ const Admin = () => {
     }
   };
 
+  const importFromZealsun = async () => {
+    if (!zealsunUrl.includes("zealsun.vn/products/")) {
+      toast({ title: "URL không hợp lệ", description: "Vui lòng nhập URL sản phẩm từ zealsun.vn", variant: "destructive" });
+      return;
+    }
+    setImportingZealsun(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-zealsun", { body: { url: zealsunUrl } });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Không parse được");
+      const d = data.data;
+      setForm({
+        name: d.name || form.name,
+        slug: d.slug || form.slug,
+        category: form.category || (categories[0]?.category ?? "den-pha"),
+        price: d.price ? String(d.price) : form.price,
+        discount: d.discount ? String(d.discount) : form.discount,
+        image_url: d.image_url || form.image_url,
+        image_file: null,
+        sku: d.sku || form.sku,
+        description: d.description || form.description,
+        in_stock: d.in_stock ?? true,
+      });
+      toast({ title: "Đã nhập thành công từ ZealSun!" });
+    } catch (e: any) {
+      toast({ title: "Lỗi nhập từ ZealSun", description: e?.message, variant: "destructive" });
+    } finally {
+      setImportingZealsun(false);
+    }
+  };
+
   const openNewProduct = () => {
     setEditingProduct(null);
+    setZealsunUrl("");
     setForm({
       name: "",
       slug: "",
@@ -353,12 +390,16 @@ const Admin = () => {
       discount: "",
       image_url: "",
       image_file: null,
+      sku: "",
+      description: "",
+      in_stock: true,
     });
     setShowForm(true);
   };
 
   const openEditProduct = (p: DbProduct) => {
     setEditingProduct(p);
+    setZealsunUrl("");
     setForm({
       name: p.name,
       slug: p.slug,
@@ -367,6 +408,9 @@ const Admin = () => {
       discount: p.discount ? String(p.discount) : "",
       image_url: p.image_url || "",
       image_file: null,
+      sku: (p as any).sku || "",
+      description: (p as any).description || "",
+      in_stock: p.in_stock,
     });
     setShowForm(true);
   };
@@ -385,8 +429,8 @@ const Admin = () => {
       return;
     }
 
-    if (!editingProduct && !form.image_file) {
-      toast({ title: "Vui lòng upload ảnh sản phẩm", variant: "destructive" });
+    if (!editingProduct && !form.image_file && !form.image_url) {
+      toast({ title: "Vui lòng upload ảnh hoặc nhập URL sản phẩm", variant: "destructive" });
       return;
     }
 
@@ -467,21 +511,24 @@ const Admin = () => {
     const parsedDiscount = discount && discount > 0 ? discount : null;
 
     if (editingProduct) {
-      const payload = {
+      const payload: any = {
         name,
         category: categoryToSave,
         price: basePrice,
         discount: parsedDiscount,
         image_url: imageUrl,
         original_price: null,
+        sku: form.sku.trim() || null,
+        description: form.description.trim() || null,
+        in_stock: form.in_stock,
       };
 
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) { toast({ title: "Lỗi cập nhật", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Đã cập nhật sản phẩm" });
     } else {
-      const slug = `${slugify(name)}-${Date.now().toString(36)}`;
-      const payload = {
+      const slug = form.slug.trim() ? form.slug.trim() : `${slugify(name)}-${Date.now().toString(36)}`;
+      const payload: any = {
         name,
         slug,
         category: categoryToSave,
@@ -489,9 +536,11 @@ const Admin = () => {
         discount: parsedDiscount,
         brand: "PV SOLAR",
         image_url: imageUrl,
-        in_stock: true,
+        in_stock: form.in_stock,
         has_gift: false,
         original_price: null,
+        sku: form.sku.trim() || null,
+        description: form.description.trim() || null,
       };
 
       const { error } = await supabase.from("products").insert(payload);
@@ -771,10 +820,35 @@ const Admin = () => {
               {showForm && (
                 <div className="bg-card border rounded-lg p-6 mb-6">
                   <h3 className="font-bold text-foreground mb-4">{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h3>
+
+                  {/* ZealSun URL Import */}
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-4">
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
+                      <Link className="h-4 w-4 text-accent" />Nhập nhanh từ ZealSun
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={zealsunUrl}
+                        onChange={(e) => setZealsunUrl(e.target.value)}
+                        placeholder="https://zealsun.vn/products/ten-san-pham"
+                        className="flex-1"
+                      />
+                      <Button onClick={importFromZealsun} disabled={importingZealsun} variant="outline">
+                        {importingZealsun ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Đang nhập...</> : <>Nhập</>}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Dán link sản phẩm từ zealsun.vn để tự động điền thông tin</p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-foreground">Tên sản phẩm *</label>
                       <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Mã sản phẩm (SKU)</label>
+                      <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="VD: ZS712" />
                     </div>
 
                     <div>
@@ -807,6 +881,29 @@ const Admin = () => {
                       />
                     </div>
 
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Tình trạng</label>
+                      <select
+                        className="mt-2 w-full border rounded-md px-3 py-2 bg-background text-foreground"
+                        value={form.in_stock ? "1" : "0"}
+                        onChange={(e) => setForm({ ...form, in_stock: e.target.value === "1" })}
+                      >
+                        <option value="1">Còn hàng (hiển thị)</option>
+                        <option value="0">Hết hàng (ẩn)</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-foreground">Mô tả sản phẩm</label>
+                      <Textarea
+                        value={form.description}
+                        onChange={(e) => setForm({ ...form, description: e.target.value })}
+                        rows={4}
+                        placeholder="Mô tả chi tiết sản phẩm..."
+                        className="mt-2"
+                      />
+                    </div>
+
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-foreground">
                         Ảnh sản phẩm {editingProduct ? "(tuỳ chọn khi sửa)" : "*"}
@@ -821,7 +918,10 @@ const Admin = () => {
                               setForm({ ...form, image_file: file });
                             }}
                           />
-                          <p className="text-xs text-muted-foreground mt-2">Không nhập URL; ảnh sẽ được upload lên Supabase.</p>
+                          <p className="text-xs text-muted-foreground mt-2">Upload ảnh hoặc sử dụng URL từ ZealSun.</p>
+                          {form.image_url && !form.image_file && (
+                            <p className="text-xs text-primary mt-1 truncate">URL ảnh: {form.image_url}</p>
+                          )}
                         </div>
 
                         {(productPreviewUrl || form.image_url) && (
@@ -848,6 +948,7 @@ const Admin = () => {
                   <thead className="bg-muted">
                     <tr>
                       <th className="text-left p-3 font-medium text-foreground">Ảnh</th>
+                      <th className="text-left p-3 font-medium text-foreground">SKU</th>
                       <th className="text-left p-3 font-medium text-foreground">Tên</th>
                       <th className="text-left p-3 font-medium text-foreground">Danh mục</th>
                       <th className="text-right p-3 font-medium text-foreground">Giá</th>
@@ -859,6 +960,7 @@ const Admin = () => {
                     {products.map((p) => (
                       <tr key={p.id} className="border-t">
                         <td className="p-3"><img src={p.image_url || "/placeholder.svg"} alt="" className="h-12 w-12 object-contain rounded" /></td>
+                        <td className="p-3 text-muted-foreground font-mono text-xs">{(p as any).sku || "-"}</td>
                         <td className="p-3 font-medium text-foreground">{p.name}</td>
                         <td className="p-3 text-muted-foreground">{p.category}</td>
                       <td className="p-3 text-right">
