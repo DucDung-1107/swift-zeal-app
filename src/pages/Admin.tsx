@@ -511,21 +511,24 @@ const Admin = () => {
     const parsedDiscount = discount && discount > 0 ? discount : null;
 
     if (editingProduct) {
-      const payload = {
+      const payload: any = {
         name,
         category: categoryToSave,
         price: basePrice,
         discount: parsedDiscount,
         image_url: imageUrl,
         original_price: null,
+        sku: form.sku.trim() || null,
+        description: form.description.trim() || null,
+        in_stock: form.in_stock,
       };
 
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) { toast({ title: "Lỗi cập nhật", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Đã cập nhật sản phẩm" });
     } else {
-      const slug = `${slugify(name)}-${Date.now().toString(36)}`;
-      const payload = {
+      const slug = form.slug.trim() ? form.slug.trim() : `${slugify(name)}-${Date.now().toString(36)}`;
+      const payload: any = {
         name,
         slug,
         category: categoryToSave,
@@ -533,9 +536,11 @@ const Admin = () => {
         discount: parsedDiscount,
         brand: "PV SOLAR",
         image_url: imageUrl,
-        in_stock: true,
+        in_stock: form.in_stock,
         has_gift: false,
         original_price: null,
+        sku: form.sku.trim() || null,
+        description: form.description.trim() || null,
       };
 
       const { error } = await supabase.from("products").insert(payload);
