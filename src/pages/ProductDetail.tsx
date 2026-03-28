@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { useCart } from "@/contexts/CartContext";
 import { useProduct } from "@/hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { resolveImageSrc } from "@/lib/image";
 
 const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN").format(price) + "₫";
 
@@ -31,12 +32,13 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
   const { data: product, isLoading } = useProduct(slug || "");
+  const imageSrc = resolveImageSrc(product?.image_url);
 
   const handleAddToCart = () => {
     if (!product) return;
     const currentPrice = calcCurrentPrice(product);
     addItem(
-      { id: product.id, name: product.name, slug: product.slug, image: product.image_url || "/placeholder.svg", price: currentPrice },
+      { id: product.id, name: product.name, slug: product.slug, image: imageSrc, price: currentPrice },
       quantity
     );
   };
@@ -78,7 +80,7 @@ const ProductDetail = () => {
         </button>
         <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-card rounded-lg border p-8 flex items-center justify-center">
-            <img src={product.image_url || "/placeholder.svg"} alt={product.name} className="max-w-full max-h-[500px] object-contain" />
+            <img src={imageSrc} alt={product.name} className="max-w-full max-h-[500px] object-contain" />
           </div>
           <div>
             <span className="text-sm text-accent font-medium">{product.brand}</span>

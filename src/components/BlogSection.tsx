@@ -1,5 +1,6 @@
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { resolveImageSrc } from "@/lib/image";
 
 const BlogSection = () => {
   const { data: posts, isLoading } = useBlogPosts();
@@ -28,7 +29,7 @@ const BlogSection = () => {
             >
               <div className="aspect-video overflow-hidden">
                 <img
-                  src={post.image}
+                  src={resolveImageSrc(post.image)}
                   alt={post.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />

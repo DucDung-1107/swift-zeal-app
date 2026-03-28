@@ -2,6 +2,7 @@ import { ShoppingCart, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import type { DbProduct } from "@/hooks/useProducts";
+import { resolveImageSrc } from "@/lib/image";
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("vi-VN").format(price) + "₫";
@@ -33,11 +34,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     const currentPrice = calcCurrentPrice(product);
+    const imageSrc = resolveImageSrc(product.image_url);
     addItem({
       id: product.id,
       name: product.name,
       slug: product.slug,
-      image: product.image_url || "/placeholder.svg",
+      image: imageSrc,
       price: currentPrice,
     });
   };
@@ -45,6 +47,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const basePrice = calcBasePrice(product);
   const currentPrice = calcCurrentPrice(product);
   const showDiscount = hasDiscount(product);
+  const imageSrc = resolveImageSrc(product.image_url);
 
   return (
     <div className="group bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow relative">
@@ -60,7 +63,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       )}
       <a href={`/products/${product.slug}`} className="block aspect-square overflow-hidden bg-muted p-4">
         <img
-          src={product.image_url || "/placeholder.svg"}
+          src={imageSrc}
           alt={product.name}
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
         />

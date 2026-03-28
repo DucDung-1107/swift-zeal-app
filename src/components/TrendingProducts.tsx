@@ -1,5 +1,6 @@
 import { useProducts } from "@/hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { resolveImageSrc } from "@/lib/image";
 
 const TrendingProducts = () => {
   const { data: products, isLoading } = useProducts();
@@ -37,7 +38,7 @@ const TrendingProducts = () => {
           >
             <div className="aspect-square overflow-hidden bg-muted p-2">
               <img
-                src={product.image_url || "/placeholder.svg"}
+                src={resolveImageSrc(product.image_url)}
                 alt={product.name}
                 className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
               />

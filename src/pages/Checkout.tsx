@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FileText } from "lucide-react";
+import { resolveImageSrc } from "@/lib/image";
 
 const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN").format(price) + "₫";
 
@@ -141,7 +142,7 @@ const Checkout = () => {
             <div className="space-y-3">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3">
-                  <img src={item.image} alt={item.name} className="w-14 h-14 object-contain bg-muted rounded p-1" />
+                  <img src={resolveImageSrc(item.image)} alt={item.name} className="w-14 h-14 object-contain bg-muted rounded p-1" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground line-clamp-2">{item.name}</p>
                     <p className="text-sm text-muted-foreground">x{item.quantity}</p>

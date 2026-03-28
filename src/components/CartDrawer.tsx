@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { Trash2, Plus, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { resolveImageSrc } from "@/lib/image";
 
 const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN").format(price) + "₫";
 
@@ -31,7 +32,7 @@ const CartDrawer = () => {
             <div className="flex-1 overflow-y-auto space-y-4 py-4">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3 border-b pb-4">
-                  <img src={item.image} alt={item.name} className="w-16 h-16 object-contain bg-muted rounded p-1" />
+                  <img src={resolveImageSrc(item.image)} alt={item.name} className="w-16 h-16 object-contain bg-muted rounded p-1" />
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-medium text-foreground line-clamp-2">{item.name}</h4>
                     <p className="text-sm font-bold text-primary mt-1">{formatPrice(item.price)}</p>

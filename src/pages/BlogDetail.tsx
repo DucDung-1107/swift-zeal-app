@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBlogPost } from "@/hooks/useBlogPost";
+import { resolveImageSrc } from "@/lib/image";
 
 const BlogDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -52,7 +53,7 @@ const BlogDetail = () => {
         </button>
 
         <article className="max-w-3xl mx-auto">
-          <img src={post.image} alt={post.title} className="w-full h-[320px] object-cover rounded-lg border" />
+          <img src={resolveImageSrc(post.image)} alt={post.title} className="w-full h-[320px] object-cover rounded-lg border" />
           <div className="mt-6 flex items-center justify-between gap-4">
             <span className="text-xs text-muted-foreground">{post.date}</span>
             <span className="text-xs text-primary font-medium">Phúc Vinh Solar</span>
