@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit } from "lucide-react";
+import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2 } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
 import { categories, blogPosts as staticBlogPosts } from "@/data/products";
@@ -71,7 +71,12 @@ const Admin = () => {
     discount: "",
     image_url: "",
     image_file: null as File | null,
+    sku: "",
+    description: "",
+    in_stock: true,
   });
+  const [zealsunUrl, setZealsunUrl] = useState("");
+  const [importingZealsun, setImportingZealsun] = useState(false);
 
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
@@ -343,8 +348,40 @@ const Admin = () => {
     }
   };
 
+  const importFromZealsun = async () => {
+    if (!zealsunUrl.includes("zealsun.vn/products/")) {
+      toast({ title: "URL không hợp lệ", description: "Vui lòng nhập URL sản phẩm từ zealsun.vn", variant: "destructive" });
+      return;
+    }
+    setImportingZealsun(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-zealsun", { body: { url: zealsunUrl } });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Không parse được");
+      const d = data.data;
+      setForm({
+        name: d.name || form.name,
+        slug: d.slug || form.slug,
+        category: form.category || categories[0]?.category ?? "den-pha",
+        price: d.price ? String(d.price) : form.price,
+        discount: d.discount ? String(d.discount) : form.discount,
+        image_url: d.image_url || form.image_url,
+        image_file: null,
+        sku: d.sku || form.sku,
+        description: d.description || form.description,
+        in_stock: d.in_stock ?? true,
+      });
+      toast({ title: "Đã nhập thành công từ ZealSun!" });
+    } catch (e: any) {
+      toast({ title: "Lỗi nhập từ ZealSun", description: e?.message, variant: "destructive" });
+    } finally {
+      setImportingZealsun(false);
+    }
+  };
+
   const openNewProduct = () => {
     setEditingProduct(null);
+    setZealsunUrl("");
     setForm({
       name: "",
       slug: "",
@@ -353,12 +390,16 @@ const Admin = () => {
       discount: "",
       image_url: "",
       image_file: null,
+      sku: "",
+      description: "",
+      in_stock: true,
     });
     setShowForm(true);
   };
 
   const openEditProduct = (p: DbProduct) => {
     setEditingProduct(p);
+    setZealsunUrl("");
     setForm({
       name: p.name,
       slug: p.slug,
@@ -367,6 +408,9 @@ const Admin = () => {
       discount: p.discount ? String(p.discount) : "",
       image_url: p.image_url || "",
       image_file: null,
+      sku: (p as any).sku || "",
+      description: (p as any).description || "",
+      in_stock: p.in_stock,
     });
     setShowForm(true);
   };
