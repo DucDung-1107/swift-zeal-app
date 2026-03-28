@@ -362,7 +362,7 @@ const Admin = () => {
       setForm({
         name: d.name || form.name,
         slug: d.slug || form.slug,
-        category: form.category || categories[0]?.category ?? "den-pha",
+        category: form.category || (categories[0]?.category ?? "den-pha"),
         price: d.price ? String(d.price) : form.price,
         discount: d.discount ? String(d.discount) : form.discount,
         image_url: d.image_url || form.image_url,
