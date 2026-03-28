@@ -955,12 +955,12 @@ const Admin = () => {
                       <th className="text-center p-3 font-medium text-foreground">Trạng thái</th>
                       <th className="text-right p-3 font-medium text-foreground">Thao tác</th>
                     </tr>
-                    </tr>
                   </thead>
                   <tbody>
                     {products.map((p) => (
                       <tr key={p.id} className="border-t">
                         <td className="p-3"><img src={p.image_url || "/placeholder.svg"} alt="" className="h-12 w-12 object-contain rounded" /></td>
+                        <td className="p-3 text-muted-foreground font-mono text-xs">{(p as any).sku || "-"}</td>
                         <td className="p-3 font-medium text-foreground">{p.name}</td>
                         <td className="p-3 text-muted-foreground">{p.category}</td>
                       <td className="p-3 text-right">
