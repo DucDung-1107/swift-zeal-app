@@ -948,11 +948,13 @@ const Admin = () => {
                   <thead className="bg-muted">
                     <tr>
                       <th className="text-left p-3 font-medium text-foreground">Ảnh</th>
+                      <th className="text-left p-3 font-medium text-foreground">SKU</th>
                       <th className="text-left p-3 font-medium text-foreground">Tên</th>
                       <th className="text-left p-3 font-medium text-foreground">Danh mục</th>
                       <th className="text-right p-3 font-medium text-foreground">Giá</th>
                       <th className="text-center p-3 font-medium text-foreground">Trạng thái</th>
                       <th className="text-right p-3 font-medium text-foreground">Thao tác</th>
+                    </tr>
                     </tr>
                   </thead>
                   <tbody>
