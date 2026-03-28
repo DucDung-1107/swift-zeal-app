@@ -429,8 +429,8 @@ const Admin = () => {
       return;
     }
 
-    if (!editingProduct && !form.image_file) {
-      toast({ title: "Vui lòng upload ảnh sản phẩm", variant: "destructive" });
+    if (!editingProduct && !form.image_file && !form.image_url) {
+      toast({ title: "Vui lòng upload ảnh hoặc nhập URL sản phẩm", variant: "destructive" });
       return;
     }
 
