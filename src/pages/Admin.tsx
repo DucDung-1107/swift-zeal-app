@@ -820,10 +820,35 @@ const Admin = () => {
               {showForm && (
                 <div className="bg-card border rounded-lg p-6 mb-6">
                   <h3 className="font-bold text-foreground mb-4">{editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm mới"}</h3>
+
+                  {/* ZealSun URL Import */}
+                  <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-4">
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2 mb-2">
+                      <Link className="h-4 w-4 text-accent" />Nhập nhanh từ ZealSun
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={zealsunUrl}
+                        onChange={(e) => setZealsunUrl(e.target.value)}
+                        placeholder="https://zealsun.vn/products/ten-san-pham"
+                        className="flex-1"
+                      />
+                      <Button onClick={importFromZealsun} disabled={importingZealsun} variant="outline">
+                        {importingZealsun ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Đang nhập...</> : <>Nhập</>}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Dán link sản phẩm từ zealsun.vn để tự động điền thông tin</p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-foreground">Tên sản phẩm *</label>
                       <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Mã sản phẩm (SKU)</label>
+                      <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="VD: ZS712" />
                     </div>
 
                     <div>
@@ -856,6 +881,29 @@ const Admin = () => {
                       />
                     </div>
 
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Tình trạng</label>
+                      <select
+                        className="mt-2 w-full border rounded-md px-3 py-2 bg-background text-foreground"
+                        value={form.in_stock ? "1" : "0"}
+                        onChange={(e) => setForm({ ...form, in_stock: e.target.value === "1" })}
+                      >
+                        <option value="1">Còn hàng (hiển thị)</option>
+                        <option value="0">Hết hàng (ẩn)</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-foreground">Mô tả sản phẩm</label>
+                      <Textarea
+                        value={form.description}
+                        onChange={(e) => setForm({ ...form, description: e.target.value })}
+                        rows={4}
+                        placeholder="Mô tả chi tiết sản phẩm..."
+                        className="mt-2"
+                      />
+                    </div>
+
                     <div className="md:col-span-2">
                       <label className="text-sm font-medium text-foreground">
                         Ảnh sản phẩm {editingProduct ? "(tuỳ chọn khi sửa)" : "*"}
@@ -870,7 +918,10 @@ const Admin = () => {
                               setForm({ ...form, image_file: file });
                             }}
                           />
-                          <p className="text-xs text-muted-foreground mt-2">Không nhập URL; ảnh sẽ được upload lên Supabase.</p>
+                          <p className="text-xs text-muted-foreground mt-2">Upload ảnh hoặc sử dụng URL từ ZealSun.</p>
+                          {form.image_url && !form.image_file && (
+                            <p className="text-xs text-primary mt-1 truncate">URL ảnh: {form.image_url}</p>
+                          )}
                         </div>
 
                         {(productPreviewUrl || form.image_url) && (
