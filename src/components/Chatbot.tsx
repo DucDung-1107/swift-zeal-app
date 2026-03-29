@@ -238,7 +238,7 @@ const ChatWindow = ({ onClose }) => {
     >
       <div
         style={{
-          backgroundColor: '#388b27',
+          backgroundColor: '#004603',
           color: 'white',
           padding: '12px 14px',
           display: 'flex',
@@ -276,7 +276,7 @@ const ChatWindow = ({ onClose }) => {
                 display: 'inline-block',
                 padding: '8px 12px',
                 borderRadius: '16px',
-                backgroundColor: msg.sender === 'user' ? '#007bff' : '#f1f1f1',
+                backgroundColor: msg.sender === 'user' ? '#004603' : '#f1f1f1',
                 color: msg.sender === 'user' ? 'white' : 'black',
               }}
             >
@@ -320,7 +320,7 @@ const ChatWindow = ({ onClose }) => {
           style={{
             width: '44px',
             height: '44px',
-            backgroundColor: '#196110',
+            backgroundColor: '#004603',
             color: 'white',
             border: 'none',
             borderRadius: '999px',
