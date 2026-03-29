@@ -77,6 +77,10 @@ const Admin = () => {
   });
   const [zealsunUrl, setZealsunUrl] = useState("");
   const [importingZealsun, setImportingZealsun] = useState(false);
+  type ZealsunVariant = { option: string; price: number; sku: string; in_stock: boolean };
+  const [zealsunVariants, setZealsunVariants] = useState<ZealsunVariant[]>([]);
+  const [zealsunBaseData, setZealsunBaseData] = useState<any>(null);
+  const [showVariantPicker, setShowVariantPicker] = useState(false);
 
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
