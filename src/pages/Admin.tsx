@@ -34,6 +34,22 @@ const slugify = (value: string) => {
   return v || "san-pham";
 };
 
+const LOCAL_PRODUCT_ASSETS_BASE = "/assets/products";
+
+const normalizeProductImageInput = (value: string) => {
+  const raw = value.trim();
+  if (!raw) return "";
+
+  if (/^(https?:\/\/|data:|blob:)/i.test(raw)) return raw;
+  if (raw.startsWith("/")) return raw;
+
+  if (raw.includes("/")) {
+    return `/${raw.replace(/^\/+/, "")}`;
+  }
+
+  return `${LOCAL_PRODUCT_ASSETS_BASE}/${raw}`;
+};
+
 const calcBasePriceFromDb = (p: DbProduct) => p.original_price ?? p.price;
 
 const calcCurrentPriceFromDb = (p: DbProduct) => {
@@ -70,7 +86,6 @@ const Admin = () => {
     price: "",
     discount: "",
     image_url: "",
-    image_file: null as File | null,
     sku: "",
     description: "",
     in_stock: true,
@@ -165,16 +180,8 @@ const Admin = () => {
       return;
     }
 
-    if (form.image_file) {
-      const url = URL.createObjectURL(form.image_file);
-      setProductPreviewUrl(url);
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-
-    setProductPreviewUrl(form.image_url || null);
-  }, [showForm, form.image_file, form.image_url]);
+    setProductPreviewUrl(normalizeProductImageInput(form.image_url) || null);
+  }, [showForm, form.image_url]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -395,7 +402,6 @@ const Admin = () => {
       price: variant ? String(variant.price) : (baseData.price ? String(baseData.price) : form.price),
       discount: baseData.discount ? String(baseData.discount) : form.discount,
       image_url: baseData.image_url || form.image_url,
-      image_file: null,
       sku: variant ? variant.sku : (baseData.sku || form.sku),
       description: baseData.description || form.description,
       in_stock: variant ? variant.in_stock : (baseData.in_stock ?? true),
@@ -446,7 +452,6 @@ const Admin = () => {
       price: "",
       discount: "",
       image_url: "",
-      image_file: null,
       sku: "",
       description: "",
       in_stock: true,
@@ -464,7 +469,6 @@ const Admin = () => {
       price: String(p.price),
       discount: p.discount ? String(p.discount) : "",
       image_url: p.image_url || "",
-      image_file: null,
       sku: (p as any).sku || "",
       description: (p as any).description || "",
       in_stock: p.in_stock,
@@ -486,86 +490,13 @@ const Admin = () => {
       return;
     }
 
-    if (!editingProduct && !form.image_file && !form.image_url) {
-      toast({ title: "Vui lòng upload ảnh hoặc nhập URL sản phẩm", variant: "destructive" });
+    if (!editingProduct && !form.image_url.trim()) {
+      toast({ title: "Vui lòng nhập tên file ảnh hoặc URL ảnh", variant: "destructive" });
       return;
     }
 
-    let imageUrl: string | null = editingProduct?.image_url ?? null;
-    if (form.image_file) {
-      const bucket = "product-images";
-      const slugBase = slugify(name);
-      const fileExt = form.image_file.name.split(".").pop();
-      const safeExt = fileExt ? `.${fileExt}` : "";
-      const storagePath = `products/${slugBase}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}${safeExt}`;
-
-      const { error: uploadError } = await supabase.storage.from(bucket).upload(storagePath, form.image_file, {
-        upsert: true,
-        contentType: form.image_file.type || undefined,
-      });
-      if (uploadError) {
-        const message = uploadError.message || "Không upload được ảnh. Vui lòng kiểm tra bucket & quyền truy cập.";
-        const lowered = message.toLowerCase();
-
-        const isBucketNotFound =
-          lowered.includes("bucket") && (lowered.includes("not found") || lowered.includes("notfound") || lowered.includes("does not exist"));
-
-        if (isBucketNotFound) {
-          // Tạo bucket nếu chưa có (đỡ phải chạy SQL thủ công).
-          try {
-            const result = await supabaseAny.storage.createBucket(bucket, { public: true });
-            // Supabase có thể trả error hoặc throw; gom chung xử lý dưới.
-            if ((result as any)?.error) throw (result as any).error;
-
-            const { error: retryError } = await supabase.storage.from(bucket).upload(storagePath, form.image_file, {
-              upsert: true,
-              contentType: form.image_file.type || undefined,
-            });
-
-            if (retryError) {
-              toast({
-                title: "Lỗi upload ảnh",
-                description: retryError.message || message,
-                variant: "destructive",
-              });
-              return;
-            }
-
-            const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
-            imageUrl = publicData.publicUrl;
-          } catch (e: any) {
-            const createBucketMessage = String(e?.message || message);
-            const loweredCreateBucket = createBucketMessage.toLowerCase();
-            const rlsBucketCreateDenied =
-              loweredCreateBucket.includes("row-level security") ||
-              loweredCreateBucket.includes("new row violates");
-
-            toast({
-              title: "Lỗi upload ảnh (tạo bucket thất bại)",
-              description: rlsBucketCreateDenied
-                ? "Không có quyền tạo bucket từ client (RLS). Vui lòng chạy migration storage hoặc tạo bucket `product-images` trong Supabase Dashboard rồi thử lại."
-                : createBucketMessage,
-              variant: "destructive",
-            });
-            return;
-          }
-        } else {
-          const hint =
-            lowered.includes("bucket") || lowered.includes("not found")
-              ? "Gợi ý: tạo bucket `product-images` và đảm bảo đã chạy migration storage policies."
-              : "";
-          toast({ title: "Lỗi upload ảnh", description: hint ? `${message}\n${hint}` : message, variant: "destructive" });
-          return;
-        }
-      }
-
-      if (!imageUrl) {
-        const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
-        imageUrl = publicData.publicUrl;
-      }
-    } else {
-      imageUrl = form.image_url || imageUrl;
-    }
+    const normalizedImageInput = normalizeProductImageInput(form.image_url);
+    const imageUrl: string | null = normalizedImageInput || editingProduct?.image_url || null;
 
     const categoryToSave = form.category || editingProduct?.category || "";
     if (!categoryToSave) {
@@ -1011,16 +942,16 @@ const Admin = () => {
                       <div className="mt-2 flex flex-col md:flex-row gap-4 items-start">
                         <div className="w-full md:flex-1">
                           <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0] ?? null;
-                              setForm({ ...form, image_file: file });
-                            }}
+                            value={form.image_url}
+                            onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                            placeholder="VD: zs.png hoặc /assets/products/zs.png"
                           />
-                          <p className="text-xs text-muted-foreground mt-2">Upload ảnh hoặc sử dụng URL từ ZealSun.</p>
-                          {form.image_url && !form.image_file && (
-                            <p className="text-xs text-primary mt-1 truncate">URL ảnh: {form.image_url}</p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Đặt ảnh vào thư mục <span className="font-mono">public/assets/products</span>,
+                            rồi nhập tên file (ví dụ: <span className="font-mono">zs.png</span>).
+                          </p>
+                          {form.image_url && (
+                            <p className="text-xs text-primary mt-1 truncate">Đường dẫn ảnh: {normalizeProductImageInput(form.image_url)}</p>
                           )}
                         </div>
 
