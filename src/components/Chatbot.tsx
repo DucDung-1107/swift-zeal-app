@@ -37,7 +37,7 @@ const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => (
       position: 'fixed',
       bottom: '20px',
       right: '20px',
-      backgroundColor: '#004603',
+      backgroundColor: '#196110',
       color: 'white',
       borderRadius: '50%',
       width: '60px',
@@ -238,7 +238,7 @@ const ChatWindow = ({ onClose }) => {
     >
       <div
         style={{
-          backgroundColor: '#388b27',
+          backgroundColor: '#196110',
           color: 'white',
           padding: '12px 14px',
           display: 'flex',
@@ -276,7 +276,7 @@ const ChatWindow = ({ onClose }) => {
                 display: 'inline-block',
                 padding: '8px 12px',
                 borderRadius: '16px',
-                backgroundColor: msg.sender === 'user' ? '#007bff' : '#f1f1f1',
+                backgroundColor: msg.sender === 'user' ? '#196110' : '#f1f1f1',
                 color: msg.sender === 'user' ? 'white' : 'black',
               }}
             >
