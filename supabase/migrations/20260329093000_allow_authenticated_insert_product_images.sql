@@ -44,3 +44,24 @@ WITH CHECK (
 CREATE POLICY "Authenticated can upload product images" ON storage.objects
 FOR INSERT TO authenticated
 WITH CHECK (bucket_id = 'product-images');
+
+-- Create messages table
+CREATE TABLE IF NOT EXISTS messages (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    content TEXT NOT NULL,
+    sender VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enable Realtime on messages table
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow realtime access for authenticated users"
+ON messages
+FOR SELECT
+USING (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Allow insert for authenticated users"
+ON messages
+FOR INSERT
+WITH CHECK (auth.uid() IS NOT NULL);

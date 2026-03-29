@@ -90,6 +90,31 @@ const Admin = () => {
     description: "",
     in_stock: true,
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
+    // Hàm upload ảnh lên Supabase Storage
+    const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setUploadingImage(true);
+      try {
+        // Tạo tên file duy nhất
+        const ext = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { data, error } = await supabase.storage.from('product-images').upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+        if (error) throw error;
+        // Lấy public URL
+        const { data: publicUrlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+        const publicUrl = publicUrlData?.publicUrl || '';
+        setForm((prev) => ({ ...prev, image_url: publicUrl }));
+      } catch (err: any) {
+        toast({ title: 'Lỗi upload ảnh', description: err?.message || 'Vui lòng thử lại.', variant: 'destructive' });
+      } finally {
+        setUploadingImage(false);
+      }
+    };
   const [zealsunUrl, setZealsunUrl] = useState("");
   const [importingZealsun, setImportingZealsun] = useState(false);
   type ZealsunVariant = { option: string; price: number; sku: string; in_stock: boolean };
@@ -940,21 +965,24 @@ const Admin = () => {
                         Ảnh sản phẩm {editingProduct ? "(tuỳ chọn khi sửa)" : "*"}
                       </label>
                       <div className="mt-2 flex flex-col md:flex-row gap-4 items-start">
-                        <div className="w-full md:flex-1">
+                        <div className="w-full md:flex-1 space-y-2">
                           <Input
                             value={form.image_url}
                             onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                            placeholder="VD: zs.png hoặc /assets/products/zs.png"
+                            placeholder="Dán URL ảnh hoặc upload ảnh mới"
                           />
-                          <p className="text-xs text-muted-foreground mt-2">
-                            Đặt ảnh vào thư mục <span className="font-mono">public/assets/products</span>,
-                            rồi nhập tên file (ví dụ: <span className="font-mono">zs.png</span>).
-                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleProductImageUpload}
+                            disabled={uploadingImage}
+                            className="block mt-2"
+                          />
+                          {uploadingImage && <p className="text-xs text-primary">Đang upload ảnh...</p>}
                           {form.image_url && (
-                            <p className="text-xs text-primary mt-1 truncate">Đường dẫn ảnh: {normalizeProductImageInput(form.image_url)}</p>
+                            <p className="text-xs text-primary mt-1 truncate">URL ảnh: {form.image_url}</p>
                           )}
                         </div>
-
                         {(productPreviewUrl || form.image_url) && (
                           <div className="w-32 h-32 bg-muted rounded-lg border overflow-hidden flex items-center justify-center flex-shrink-0">
                             <img

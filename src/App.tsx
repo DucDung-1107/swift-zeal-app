@@ -21,6 +21,7 @@ import BlogDetail from "./pages/BlogDetail.tsx";
 import About from "./pages/About.tsx";
 import PageDetail from "./pages/PageDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Chatbot from "./components/Chatbot";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
         </CartProvider>
       </AuthProvider>
     </TooltipProvider>
+    <Chatbot />
   </QueryClientProvider>
 );
 
