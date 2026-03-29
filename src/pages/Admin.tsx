@@ -107,10 +107,20 @@ const Admin = () => {
         // Tạo tên file duy nhất
         const ext = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { data, error } = await supabase.storage.from('product-images').upload(fileName, file, {
+        let { data, error } = await supabase.storage.from('product-images').upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
         });
+        // Nếu bucket chưa tồn tại, tạo bucket rồi thử lại
+        if (error && (error.message?.toLowerCase().includes('not found') || error.message?.toLowerCase().includes('bucket'))) {
+          await supabase.storage.createBucket('product-images', { public: true });
+          const retryResult = await supabase.storage.from('product-images').upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+          data = retryResult.data;
+          error = retryResult.error;
+        }
         if (error) throw error;
         // Lấy public URL
         const { data: publicUrlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
@@ -294,9 +304,18 @@ const Admin = () => {
   const updateUserRole = async (userId: string, role: string) => {
     if (!confirm("Xác nhận cập nhật vai trò người dùng?")) return;
     try {
-      await supabaseAny.from("user_roles").delete().eq("user_id", userId);
-      const { error } = await supabaseAny.from("user_roles").insert({ user_id: userId, role });
-      if (error) throw error;
+      // Thêm role mới trước (tránh mất quyền admin khi tự sửa)
+      const { error: insertError } = await supabaseAny
+        .from("user_roles")
+        .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
+      if (insertError) throw insertError;
+      // Xóa các role cũ khác
+      const { error: deleteError } = await supabaseAny
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .neq("role", role);
+      if (deleteError) throw deleteError;
       toast({ title: "Đã cập nhật vai trò" });
       fetchUsers();
     } catch (e: any) {

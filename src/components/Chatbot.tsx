@@ -84,7 +84,7 @@ const ChatWindow = ({ onClose }) => {
         .select('id, status, unread_count')
         .eq('session_id', sessionId)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (existingError) {
         console.error('Error checking conversation', existingError);
