@@ -534,9 +534,17 @@ const Admin = () => {
             const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(storagePath);
             imageUrl = publicData.publicUrl;
           } catch (e: any) {
+            const createBucketMessage = String(e?.message || message);
+            const loweredCreateBucket = createBucketMessage.toLowerCase();
+            const rlsBucketCreateDenied =
+              loweredCreateBucket.includes("row-level security") ||
+              loweredCreateBucket.includes("new row violates");
+
             toast({
               title: "Lỗi upload ảnh (tạo bucket thất bại)",
-              description: e?.message ?? message,
+              description: rlsBucketCreateDenied
+                ? "Không có quyền tạo bucket từ client (RLS). Vui lòng chạy migration storage hoặc tạo bucket `product-images` trong Supabase Dashboard rồi thử lại."
+                : createBucketMessage,
               variant: "destructive",
             });
             return;
@@ -544,7 +552,7 @@ const Admin = () => {
         } else {
           const hint =
             lowered.includes("bucket") || lowered.includes("not found")
-              ? "Gợi ý: kiểm tra bucket `product-images` và chạy migration lưu bucket/policies."
+              ? "Gợi ý: tạo bucket `product-images` và đảm bảo đã chạy migration storage policies."
               : "";
           toast({ title: "Lỗi upload ảnh", description: hint ? `${message}\n${hint}` : message, variant: "destructive" });
           return;
