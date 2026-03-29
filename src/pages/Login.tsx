@@ -29,7 +29,7 @@ const Login = () => {
     }
 
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
     if (error) {
       toast({ title: "Đăng nhập thất bại", description: error.message, variant: "destructive" });
