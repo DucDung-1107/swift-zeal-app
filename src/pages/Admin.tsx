@@ -77,6 +77,10 @@ const Admin = () => {
   });
   const [zealsunUrl, setZealsunUrl] = useState("");
   const [importingZealsun, setImportingZealsun] = useState(false);
+  type ZealsunVariant = { option: string; price: number; sku: string; in_stock: boolean };
+  const [zealsunVariants, setZealsunVariants] = useState<ZealsunVariant[]>([]);
+  const [zealsunBaseData, setZealsunBaseData] = useState<any>(null);
+  const [showVariantPicker, setShowVariantPicker] = useState(false);
 
   // Orders state
   const [orders, setOrders] = useState<Order[]>([]);
@@ -354,29 +358,82 @@ const Admin = () => {
       return;
     }
     setImportingZealsun(true);
+    setZealsunVariants([]);
+    setZealsunBaseData(null);
+    setShowVariantPicker(false);
     try {
       const { data, error } = await supabase.functions.invoke("scrape-zealsun", { body: { url: zealsunUrl } });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Không parse được");
       const d = data.data;
-      setForm({
-        name: d.name || form.name,
-        slug: d.slug || form.slug,
-        category: form.category || (categories[0]?.category ?? "den-pha"),
-        price: d.price ? String(d.price) : form.price,
-        discount: d.discount ? String(d.discount) : form.discount,
-        image_url: d.image_url || form.image_url,
-        image_file: null,
-        sku: d.sku || form.sku,
-        description: d.description || form.description,
-        in_stock: d.in_stock ?? true,
-      });
-      toast({ title: "Đã nhập thành công từ ZealSun!" });
+
+      if (d.has_variants && d.variants?.length > 1) {
+        // Store base data and show variant picker
+        setZealsunBaseData(d);
+        setZealsunVariants(d.variants);
+        setShowVariantPicker(true);
+        toast({ title: `Tìm thấy ${d.variants.length} biến thể`, description: "Chọn biến thể để nhập" });
+      } else {
+        // Single product, fill form directly
+        fillFormFromZealsun(d, null);
+        toast({ title: "Đã nhập thành công từ ZealSun!" });
+      }
     } catch (e: any) {
       toast({ title: "Lỗi nhập từ ZealSun", description: e?.message, variant: "destructive" });
     } finally {
       setImportingZealsun(false);
     }
+  };
+
+  const fillFormFromZealsun = (baseData: any, variant: ZealsunVariant | null) => {
+    const variantSuffix = variant ? ` ${variant.option}` : "";
+    const variantSlugSuffix = variant ? `-${variant.option.toLowerCase().replace(/\s+/g, "-")}` : "";
+    setForm({
+      name: (baseData.name || "") + variantSuffix,
+      slug: (baseData.slug || "") + variantSlugSuffix,
+      category: form.category || (categories[0]?.category ?? "den-pha"),
+      price: variant ? String(variant.price) : (baseData.price ? String(baseData.price) : form.price),
+      discount: baseData.discount ? String(baseData.discount) : form.discount,
+      image_url: baseData.image_url || form.image_url,
+      image_file: null,
+      sku: variant ? variant.sku : (baseData.sku || form.sku),
+      description: baseData.description || form.description,
+      in_stock: variant ? variant.in_stock : (baseData.in_stock ?? true),
+    });
+    setShowVariantPicker(false);
+  };
+
+  const importAllVariants = async () => {
+    if (!zealsunBaseData || zealsunVariants.length === 0) return;
+    const categoryToUse = form.category || (categories[0]?.category ?? "den-pha");
+    let count = 0;
+    for (const v of zealsunVariants) {
+      if (v.price <= 0) continue; // Skip variants with 0 price (likely unavailable)
+      const variantSuffix = ` ${v.option}`;
+      const variantSlugSuffix = `-${v.option.toLowerCase().replace(/\s+/g, "-")}`;
+      const payload: any = {
+        name: (zealsunBaseData.name || "") + variantSuffix,
+        slug: `${zealsunBaseData.slug || "sp"}${variantSlugSuffix}-${Date.now().toString(36)}`,
+        category: categoryToUse,
+        price: v.price,
+        discount: zealsunBaseData.discount || null,
+        brand: "PV SOLAR",
+        image_url: zealsunBaseData.image_url || null,
+        in_stock: v.in_stock,
+        has_gift: false,
+        original_price: null,
+        sku: v.sku,
+        description: zealsunBaseData.description || null,
+      };
+      const { error } = await supabase.from("products").insert(payload);
+      if (!error) count++;
+    }
+    toast({ title: `Đã nhập ${count}/${zealsunVariants.length} biến thể` });
+    setShowVariantPicker(false);
+    setZealsunVariants([]);
+    setZealsunBaseData(null);
+    setShowForm(false);
+    fetchProducts();
   };
 
   const openNewProduct = () => {
@@ -838,6 +895,41 @@ const Admin = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">Dán link sản phẩm từ zealsun.vn để tự động điền thông tin</p>
+
+                    {/* Variant Picker */}
+                    {showVariantPicker && zealsunVariants.length > 0 && (
+                      <div className="mt-3 border border-accent/40 rounded-lg p-3 bg-background">
+                        <p className="text-sm font-medium mb-2">🔀 Sản phẩm có {zealsunVariants.length} biến thể (công suất):</p>
+                        <div className="space-y-2">
+                          {zealsunVariants.map((v, i) => (
+                            <div key={i} className="flex items-center justify-between bg-muted/50 rounded px-3 py-2">
+                              <div className="flex-1">
+                                <span className="font-medium">{zealsunBaseData?.name} {v.option}</span>
+                                <span className="text-sm text-muted-foreground ml-2">SKU: {v.sku}</span>
+                                <span className="text-sm ml-2">{v.price > 0 ? formatPrice(v.price) : "Hết hàng"}</span>
+                                {!v.in_stock && <span className="text-xs text-destructive ml-2">(Hết hàng)</span>}
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => fillFormFromZealsun(zealsunBaseData, v)}
+                                disabled={v.price <= 0}
+                              >
+                                Chọn
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" onClick={importAllVariants} className="bg-primary">
+                            Nhập tất cả biến thể (có giá &gt; 0)
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setShowVariantPicker(false)}>
+                            Đóng
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

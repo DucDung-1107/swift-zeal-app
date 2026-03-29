@@ -33,23 +33,9 @@ Deno.serve(async (req) => {
     const nameMatch = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
     const name = nameMatch ? nameMatch[1].replace(/<[^>]*>/g, '').trim() : '';
 
-    // Parse SKU
+    // Parse base SKU
     const skuMatch = html.match(/id="pro_sku"[^>]*>.*?<strong>(.*?)<\/strong>/is);
-    const sku = skuMatch ? skuMatch[1].trim() : '';
-
-    // Parse price - current price
-    const priceMatch = html.match(/<span class="pro-price">([\d.,]+)₫<\/span>/i);
-    const priceStr = priceMatch ? priceMatch[1].replace(/[.,]/g, '') : '0';
-    const price = parseInt(priceStr) || 0;
-
-    // Parse original price
-    const origMatch = html.match(/<del>([\d.,]+)₫<\/del>/i);
-    const origStr = origMatch ? origMatch[1].replace(/[.,]/g, '') : '';
-    const original_price = origStr ? parseInt(origStr) || null : null;
-
-    // Parse discount
-    const discountMatch = html.match(/<span class="pro-percent">-([\d]+)%/i);
-    const discount = discountMatch ? parseInt(discountMatch[1]) : null;
+    const baseSku = skuMatch ? skuMatch[1].trim() : '';
 
     // Parse brand
     const brandMatch = html.match(/pro-vendor.*?<strong>.*?>(.*?)<\/a>/is);
@@ -60,7 +46,7 @@ Deno.serve(async (req) => {
     let image_url = imgMatch ? imgMatch[1].trim() : '';
     if (image_url.startsWith('//')) image_url = 'https:' + image_url;
 
-    // Parse description from product tab content
+    // Parse description
     const descMatch = html.match(/class="product-description[^"]*"[^>]*>([\s\S]*?)<\/div>/i);
     let description = '';
     if (descMatch) {
@@ -74,10 +60,85 @@ Deno.serve(async (req) => {
     // In stock check
     const inStock = html.includes('Còn hàng');
 
+    // Parse current price (default variant)
+    const priceMatch = html.match(/<span class="pro-price">([\d.,]+)₫<\/span>/i);
+    const priceStr = priceMatch ? priceMatch[1].replace(/[.,]/g, '') : '0';
+    const price = parseInt(priceStr) || 0;
+
+    // Parse original price
+    const origMatch = html.match(/<del>([\d.,]+)₫<\/del>/i);
+    const origStr = origMatch ? origMatch[1].replace(/[.,]/g, '') : '';
+    const original_price = origStr ? parseInt(origStr) || null : null;
+
+    // Parse discount
+    const discountMatch = html.match(/<span class="pro-percent">-([\d]+)%/i);
+    const discount = discountMatch ? parseInt(discountMatch[1]) : null;
+
+    // Parse variants from <select id="product-select">
+    // Format: <option value="1155516581">100W - 1,480,000₫</option>
+    const variants: Array<{
+      option: string;
+      price: number;
+      sku: string;
+      in_stock: boolean;
+    }> = [];
+
+    const selectMatch = html.match(/<select[^>]*id="product-select"[^>]*>([\s\S]*?)<\/select>/i);
+    if (selectMatch) {
+      const optionRegex = /<option[^>]*value="[^"]*"[^>]*>(.*?)<\/option>/gi;
+      let m;
+      while ((m = optionRegex.exec(selectMatch[1])) !== null) {
+        const text = m[1].trim(); // e.g. "100W - 1,480,000₫"
+        const parts = text.split(' - ');
+        if (parts.length >= 2) {
+          const option = parts[0].trim(); // "100W"
+          const varPriceStr = parts[1].replace(/[₫.,]/g, '').trim();
+          const varPrice = parseInt(varPriceStr) || 0;
+
+          // Derive SKU: if baseSku is "ZS616-100" and option is "200W", make "ZS616-200"
+          let varSku = baseSku;
+          const numMatch = option.match(/(\d+)/);
+          if (numMatch && baseSku) {
+            // Replace trailing number in baseSku with the variant number
+            varSku = baseSku.replace(/-\d+$/, `-${numMatch[1]}`);
+            if (varSku === baseSku && !baseSku.includes('-')) {
+              varSku = `${baseSku}-${numMatch[1]}`;
+            }
+          }
+
+          // Check soldout: swatch-element with soldout class
+          const soldoutPattern = new RegExp(`swatch-element[^"]*${option.toLowerCase().replace(/\s/g, '')}[^"]*soldout`, 'i');
+          const varInStock = !soldoutPattern.test(html);
+
+          variants.push({
+            option,
+            price: varPrice,
+            sku: varSku,
+            in_stock: varInStock,
+          });
+        }
+      }
+    }
+
+    const hasVariants = variants.length > 1;
+
     return new Response(
       JSON.stringify({
         success: true,
-        data: { name, sku, price, original_price, discount, brand, image_url, description, slug, in_stock: inStock },
+        data: {
+          name,
+          sku: baseSku,
+          price,
+          original_price,
+          discount,
+          brand,
+          image_url,
+          description,
+          slug,
+          in_stock: inStock,
+          has_variants: hasVariants,
+          variants: hasVariants ? variants : [],
+        },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
