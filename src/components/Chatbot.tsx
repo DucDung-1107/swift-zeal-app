@@ -61,6 +61,15 @@ const ChatWindow = ({ onClose }) => {
   const [typing, setTyping] = useState(false);
   const [hasSupabase, setHasSupabase] = useState<boolean>(isSupabaseConfigured);
 
+  const defaultWelcome = 'Cảm ơn quý khách quan tâm tới Phúc Vinh Solar, Nếu bạn muốn có được sự quan tâm đặc biệt hơn hãy gửi tới zalo với số điện thoại 0866121617, cảm ơn quý khách và xin quý khách đợi trong giây lát chúng tôi sẽ trả lời trong ít phút.';
+
+  // Helper: initialise local-only chat with welcome message
+  const initLocalChat = () => {
+    setHasSupabase(false);
+    setConversationId(-1); // Sentinel so sendMessage doesn't short-circuit
+    setMessages([{ id: Date.now(), sender: 'agent', content: defaultWelcome, created_at: new Date().toISOString() }]);
+  };
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let subscription: any;
@@ -74,8 +83,8 @@ const ChatWindow = ({ onClose }) => {
       localStorage.setItem('chat_session_id', sessionId);
 
       if (!isSupabaseConfigured) {
-        setHasSupabase(false);
         console.info('Supabase is not configured; using local-only chat mode.');
+        initLocalChat();
         return;
       }
 
@@ -88,9 +97,9 @@ const ChatWindow = ({ onClose }) => {
 
       if (existingError) {
         console.error('Error checking conversation', existingError);
-        // If Supabase returns an error (table missing, misconfigured REST, etc.),
-        // disable Supabase-backed chat to avoid repeated failing requests.
-        setHasSupabase(false);
+        // Table missing or misconfigured — fall back to local-only chat
+        // so the user still gets the welcome message and can interact.
+        initLocalChat();
         return;
       }
 
@@ -107,9 +116,8 @@ const ChatWindow = ({ onClose }) => {
 
         if (insertError || !newConversation) {
           console.error('Error creating conversation', insertError);
-          // Stop trying to use Supabase if creation fails (missing table or policy)
-          setHasSupabase(false);
-          alert('Lỗi tạo cuộc hội thoại. Vui lòng kiểm tra Supabase policy (auth) và migrations.');
+          // Fall back to local-only chat so user can still interact
+          initLocalChat();
           return;
         }
 
@@ -132,9 +140,8 @@ const ChatWindow = ({ onClose }) => {
 
       if ((messageData || []).length === 0) {
         // Thêm default reply ngay khi mới tạo convo nếu chưa có message
-        const defaultReply = 'Cảm ơn quý khách quan tâm tới Phúc Vinh Solar, Nếu bạn muốn có được sự quan tâm đặc biệt hơn hãy gửi tới zalo với số điện thoại 0866121617, cảm ơn quý khách và xin quý khách đợi trong giây lát chúng tôi sẽ trả lời trong ít phút.';
-        await supabase.from('messages').insert([{ conversation_id: convId, sender: 'agent', content: defaultReply }]);
-        setMessages([{ id: Date.now() + 1, sender: 'agent', content: defaultReply, created_at: new Date().toISOString() }]);
+        await supabase.from('messages').insert([{ conversation_id: convId, sender: 'agent', content: defaultWelcome }]);
+        setMessages([{ id: Date.now() + 1, sender: 'agent', content: defaultWelcome, created_at: new Date().toISOString() }]);
       }
 
       subscription = supabase
@@ -174,8 +181,7 @@ const ChatWindow = ({ onClose }) => {
     setInput('');
 
     if (!hasSupabase) {
-      const defaultReply = 'Chat backend chưa sẵn sàng; hiện chỉ giả lập trả lời tự động.';
-      setMessages((prev) => [...prev, { id: Date.now() + 1, sender: 'agent', content: defaultReply, created_at: new Date().toISOString() }]);
+      setMessages((prev) => [...prev, { id: Date.now() + 1, sender: 'agent', content: defaultWelcome, created_at: new Date().toISOString() }]);
       setTyping(false);
       return;
     }
@@ -249,22 +255,6 @@ const ChatWindow = ({ onClose }) => {
           ✖
         </button>
       </div>
-      {!hasSupabase && (
-        <div style={{ padding: '10px', background: '#fff4e5', color: '#663c00', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 13 }}>
-            Chế độ chat ngoại tuyến: Supabase chưa sẵn sàng. Một số chức năng bị giới hạn.
-          </div>
-          <button
-            onClick={() => {
-              // Minimal troubleshooting helper for end users
-              alert('Vui lòng kiểm tra VITE_SUPABASE_URL và VITE_SUPABASE_PUBLISHABLE_KEY trong file .env, sau đó chạy migrations trong supabase/migrations/');
-            }}
-            style={{ background: 'transparent', border: '1px solid #ffd08a', borderRadius: 6, padding: '6px 8px', cursor: 'pointer' }}
-          >
-            Hướng dẫn
-          </button>
-        </div>
-      )}
       <div
         style={{
           flex: 1,
