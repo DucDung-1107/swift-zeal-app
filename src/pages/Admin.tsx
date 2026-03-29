@@ -895,6 +895,41 @@ const Admin = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">Dán link sản phẩm từ zealsun.vn để tự động điền thông tin</p>
+
+                    {/* Variant Picker */}
+                    {showVariantPicker && zealsunVariants.length > 0 && (
+                      <div className="mt-3 border border-accent/40 rounded-lg p-3 bg-background">
+                        <p className="text-sm font-medium mb-2">🔀 Sản phẩm có {zealsunVariants.length} biến thể (công suất):</p>
+                        <div className="space-y-2">
+                          {zealsunVariants.map((v, i) => (
+                            <div key={i} className="flex items-center justify-between bg-muted/50 rounded px-3 py-2">
+                              <div className="flex-1">
+                                <span className="font-medium">{zealsunBaseData?.name} {v.option}</span>
+                                <span className="text-sm text-muted-foreground ml-2">SKU: {v.sku}</span>
+                                <span className="text-sm ml-2">{v.price > 0 ? formatPrice(v.price) : "Hết hàng"}</span>
+                                {!v.in_stock && <span className="text-xs text-destructive ml-2">(Hết hàng)</span>}
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => fillFormFromZealsun(zealsunBaseData, v)}
+                                disabled={v.price <= 0}
+                              >
+                                Chọn
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" onClick={importAllVariants} className="bg-primary">
+                            Nhập tất cả biến thể (có giá &gt; 0)
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setShowVariantPicker(false)}>
+                            Đóng
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
