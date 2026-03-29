@@ -1,19 +1,43 @@
 // Import necessary libraries
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { MessageSquare, Send } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../integrations/supabase/client';
 
-// Initialize Supabase client
-const supabase = createClient('your-supabase-url', 'your-supabase-anon-key');
+const API_BASE = null;
+
+
+type Message = {
+  id: number;
+  sender: 'user' | 'agent';
+  content: string;
+  created_at: string;
+};
+
+type SupabaseConversation = {
+  id: number;
+  session_id: string;
+  status: string;
+  unread_count: number;
+  created_at: string;
+};
+
+type SupabaseMessage = {
+  id: number;
+  conversation_id: number;
+  sender: 'user' | 'agent';
+  content: string;
+  created_at: string;
+};
 
 // Floating Chat Icon Component
-const FloatingChatIcon = ({ onClick }) => (
+const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => (
   <div
     onClick={onClick}
     style={{
       position: 'fixed',
       bottom: '20px',
       right: '20px',
-      backgroundColor: '#007bff',
+      backgroundColor: '#004603',
       color: 'white',
       borderRadius: '50%',
       width: '60px',
@@ -25,60 +49,182 @@ const FloatingChatIcon = ({ onClick }) => (
       boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
     }}
   >
-    💬
+    <MessageSquare size={26} />
   </div>
 );
 
 // Chat Window Component
 const ChatWindow = ({ onClose }) => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [conversationId, setConversationId] = useState<number | null>(null);
+  const [typing, setTyping] = useState(false);
+  const [hasSupabase, setHasSupabase] = useState<boolean>(isSupabaseConfigured);
 
   useEffect(() => {
-    // Fetch initial messages
-    const fetchMessages = async () => {
-      const { data } = await supabase
-        .from('messages')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let subscription: any;
+
+    const initChat = async () => {
+      const sessionId =
+        localStorage.getItem('chat_session_id') ||
+        (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `sess-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      localStorage.setItem('chat_session_id', sessionId);
+
+      if (!isSupabaseConfigured) {
+        setHasSupabase(false);
+        console.info('Supabase is not configured; using local-only chat mode.');
+        return;
+      }
+
+      const { data: existingConversation, error: existingError } = await supabase
+        .from<SupabaseConversation>('conversations')
+        .select('id, status, unread_count')
+        .eq('session_id', sessionId)
+        .limit(1)
+        .single();
+
+      if (existingError) {
+        console.error('Error checking conversation', existingError);
+        // If Supabase returns an error (table missing, misconfigured REST, etc.),
+        // disable Supabase-backed chat to avoid repeated failing requests.
+        setHasSupabase(false);
+        return;
+      }
+
+      let convId: number;
+
+      if (existingConversation?.id) {
+        convId = existingConversation.id;
+      } else {
+        const { data: newConversation, error: insertError } = await supabase
+          .from<SupabaseConversation>('conversations')
+          .insert({ session_id: sessionId, status: 'open', unread_count: 0 })
+          .select('*')
+          .single();
+
+        if (insertError || !newConversation) {
+          console.error('Error creating conversation', insertError);
+          // Stop trying to use Supabase if creation fails (missing table or policy)
+          setHasSupabase(false);
+          alert('Lỗi tạo cuộc hội thoại. Vui lòng kiểm tra Supabase policy (auth) và migrations.');
+          return;
+        }
+
+        convId = newConversation.id;
+      }
+
+      setConversationId(convId);
+
+      const { data: messageData, error: messageError } = await supabase
+        .from<SupabaseMessage>('messages')
         .select('*')
+        .eq('conversation_id', convId)
         .order('created_at', { ascending: true });
-      setMessages(data || []);
+
+      if (messageError) {
+        console.error('Error loading messages', messageError);
+      }
+
+      setMessages((messageData || []) as Message[]);
+
+      if ((messageData || []).length === 0) {
+        // Thêm default reply ngay khi mới tạo convo nếu chưa có message
+        const defaultReply = 'Cảm ơn quý khách quan tâm tới Phúc Vinh Solar, Nếu bạn muốn có được sự quan tâm đặc biệt hơn hãy gửi tới zalo với số điện thoại 0866121617, cảm ơn quý khách và xin quý khách đợi trong giây lát chúng tôi sẽ trả lời trong ít phút.';
+        await supabase.from('messages').insert([{ conversation_id: convId, sender: 'agent', content: defaultReply }]);
+        setMessages([{ id: Date.now() + 1, sender: 'agent', content: defaultReply, created_at: new Date().toISOString() }]);
+      }
+
+      subscription = supabase
+        .channel('public:messages')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` },
+          (payload) => {
+            setMessages((prev) => [...prev, payload.new as Message]);
+          }
+        )
+        .subscribe();
     };
 
-    fetchMessages();
-
-    // Subscribe to Realtime updates
-    const subscription = supabase
-      .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        setMessages((prev) => [...prev, payload.new]);
-      })
-      .subscribe();
+    initChat();
 
     return () => {
-      supabase.removeChannel(subscription);
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
     };
   }, []);
 
-  const sendMessage = async () => {
-    if (input.trim() === '') return;
+  const sendMessage = async (messageText?: string) => {
+    const text = (messageText ?? input).trim();
+    if (!text || !conversationId) return;
+
+    setTyping(true);
+
+    const userMessage: Message = {
+      id: Date.now(),
+      sender: 'user',
+      content: text,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+
+    if (!hasSupabase) {
+      const defaultReply = 'Chat backend chưa sẵn sàng; hiện chỉ giả lập trả lời tự động.';
+      setMessages((prev) => [...prev, { id: Date.now() + 1, sender: 'agent', content: defaultReply, created_at: new Date().toISOString() }]);
+      setTyping(false);
+      return;
+    }
+
+    const { error: sendError } = await supabase.from('messages').insert([
+      { conversation_id: conversationId, sender: 'user', content: text },
+    ]);
+
+    if (sendError) {
+      console.error('Error inserting user message', sendError);
+      alert('Lỗi gửi tin nhắn: ' + (sendError.message || sendError.details || 'Quyền truy cập bị từ chối.'));
+      setTyping(false);
+      return;
+    }
 
     await supabase
-      .from('messages')
-      .insert([{ content: input, sender: 'user' }]);
+      .from('conversations')
+      .update({ unread_count: 1 })
+      .eq('id', conversationId);
 
-    setInput('');
+    const defaultReply = 'Cảm ơn quý khách quan tâm tới Phúc Vinh Solar, Nếu bạn muốn có được sự quan tâm đặc biệt hơn hãy gửi tới zalo với số điện thoại 0866121617, cảm ơn quý khách và xin quý khách đợi trong giây lát chúng tôi sẽ trả lời trong ít phút.';
+    const { error: botError } = await supabase.from('messages').insert([
+      { conversation_id: conversationId, sender: 'agent', content: defaultReply },
+    ]);
+
+    if (botError) {
+      console.error('Error inserting auto reply', botError);
+    }
+
+    setTyping(false);
   };
+
+  const quickReplies = [
+    'Giá bao nhiêu?',
+    'Mua ở đâu?',
+    'Chính sách đổi trả thế nào?',
+  ];
 
   return (
     <div
       style={{
         position: 'fixed',
-        bottom: '100px',
+        bottom: '60px',
         right: '20px',
-        width: '300px',
+        width: '430px',
+        height: '540px',
         backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+        borderRadius: '12px',
+        boxShadow: '0 10px 35px rgba(0, 0, 0, 0.25)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -86,19 +232,39 @@ const ChatWindow = ({ onClose }) => {
     >
       <div
         style={{
-          backgroundColor: '#007bff',
+          backgroundColor: '#388b27',
           color: 'white',
-          padding: '10px',
+          padding: '12px 14px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: '8px',
         }}
       >
-        <span>Chatbot</span>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MessageSquare size={18} />
+          <strong>Chat Support</strong>
+        </div>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', fontSize: '18px' }}>
           ✖
         </button>
       </div>
+      {!hasSupabase && (
+        <div style={{ padding: '10px', background: '#fff4e5', color: '#663c00', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 13 }}>
+            Chế độ chat ngoại tuyến: Supabase chưa sẵn sàng. Một số chức năng bị giới hạn.
+          </div>
+          <button
+            onClick={() => {
+              // Minimal troubleshooting helper for end users
+              alert('Vui lòng kiểm tra VITE_SUPABASE_URL và VITE_SUPABASE_PUBLISHABLE_KEY trong file .env, sau đó chạy migrations trong supabase/migrations/');
+            }}
+            style={{ background: 'transparent', border: '1px solid #ffd08a', borderRadius: 6, padding: '6px 8px', cursor: 'pointer' }}
+          >
+            Hướng dẫn
+          </button>
+        </div>
+      )}
       <div
         style={{
           flex: 1,
@@ -129,26 +295,52 @@ const ChatWindow = ({ onClose }) => {
           </div>
         ))}
       </div>
-      <div style={{ display: 'flex', padding: '10px', borderTop: '1px solid #ddd' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '10px', borderBottom: '1px solid #ddd' }}>
+        {quickReplies.map((reply) => (
+          <button
+            key={reply}
+            onClick={() => {
+              setInput(reply);
+              sendMessage(reply);
+            }}
+            style={{
+              padding: '6px 10px',
+              borderRadius: '14px',
+              border: '1px solid #ddd',
+              backgroundColor: '#f3f4f6',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+          >
+            {reply}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', padding: '12px', borderTop: '1px solid #ddd', alignItems: 'center', gap: 8 }}>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          style={{ flex: 1, padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+          style={{ flex: 1, padding: '10px 12px', fontSize: '14px', border: '1px solid #ccc', borderRadius: '999px' }}
+          onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+          placeholder="Nhập câu hỏi..."
         />
         <button
-          onClick={sendMessage}
+          onClick={() => sendMessage()}
           style={{
-            marginLeft: '10px',
-            padding: '8px 12px',
-            backgroundColor: '#007bff',
+            width: '44px',
+            height: '44px',
+            backgroundColor: '#196110',
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: '999px',
             cursor: 'pointer',
+            display: 'grid',
+            placeItems: 'center',
           }}
+          aria-label="Gửi"
         >
-          Send
+          <Send size={18} />
         </button>
       </div>
     </div>

@@ -32,7 +32,7 @@ const App = () => (
         <CartProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
             <CartDrawer />
             <Routes>
               <Route path="/" element={<Index />} />

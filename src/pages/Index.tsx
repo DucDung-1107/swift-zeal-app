@@ -7,7 +7,6 @@ import NewCollection from "@/components/NewCollection";
 import PromoBanners from "@/components/PromoBanners";
 import BlogSection from "@/components/BlogSection";
 import Footer from "@/components/Footer";
-import FloatingActions from "@/components/FloatingActions";
 
 const Index = () => {
   return (
@@ -23,7 +22,6 @@ const Index = () => {
         <BlogSection />
       </main>
       <Footer />
-      <FloatingActions />
     </div>
   );
 };

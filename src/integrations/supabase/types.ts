@@ -248,6 +248,54 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          id: number
+          session_id: string
+          status: string
+          unread_count: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          session_id: string
+          status?: string
+          unread_count?: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          session_id?: string
+          status?: string
+          unread_count?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          id: number
+          conversation_id: number | null
+          content: string
+          sender: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          conversation_id?: number | null
+          content: string
+          sender: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          conversation_id?: number | null
+          content?: string
+          sender?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

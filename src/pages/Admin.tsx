@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import CRMChat from "@/components/CRMChat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2 } from "lucide-react";
+import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2, MessageSquare } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
 import { categories, blogPosts as staticBlogPosts } from "@/data/products";
@@ -71,7 +72,13 @@ const Admin = () => {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages">("products");
+  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages" | "support">("products");
+  const [isSupportPopupOpen, setIsSupportPopupOpen] = useState(false);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+  const [supportMessages, setSupportMessages] = useState<any[]>([]);
+  const [supportReply, setSupportReply] = useState("");
+
 
   // Products state
   const [products, setProducts] = useState<DbProduct[]>([]);
@@ -216,6 +223,7 @@ const Admin = () => {
     else if (tab === "services") fetchServices();
     else if (tab === "posts") fetchPosts();
     else if (tab === "pages") fetchPages();
+    else if (tab === "support") loadSupportConversations();
   }, [isAdmin, tab]);
 
   const fetchProducts = async () => {
@@ -712,6 +720,85 @@ const Admin = () => {
     }
   };
 
+  const loadSupportConversations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*, messages(*)')
+        .order('unread_count', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const sorted = (data || []).sort((a: any, b: any) => {
+        const aUnread = a.unread_count ?? 0;
+        const bUnread = b.unread_count ?? 0;
+        if (aUnread !== bUnread) return bUnread - aUnread;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      setConversations(sorted);
+      if (sorted.length > 0) {
+        setSelectedConversationId((prev) => prev ?? sorted[0].id);
+        setSupportMessages(sorted[0].messages || []);
+      }
+    } catch (error) {
+      console.error('Failed to load conversations', error);
+      setConversations([]);
+      setSupportMessages([]);
+    }
+  };
+
+  const loadConversation = async (id: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*, messages(*)')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setSupportMessages(data.messages || []);
+      setSelectedConversationId(id);
+    } catch (error) {
+      console.error('Failed to load conversation', error);
+      setSupportMessages([]);
+    }
+  };
+
+  const sendSupportReply = async () => {
+    if (!selectedConversationId || !supportReply.trim()) return;
+    try {
+      const { error } = await supabase.from('messages').insert([
+        {
+          conversation_id: selectedConversationId,
+          sender: 'admin',
+          content: supportReply.trim(),
+        },
+      ]);
+      if (error) throw error;
+
+      await supabase
+        .from('conversations')
+        .update({ unread_count: 0 })
+        .eq('id', selectedConversationId);
+
+      setSupportMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          sender: 'admin',
+          content: supportReply.trim(),
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      setSupportReply('');
+      loadSupportConversations();
+    } catch (error) {
+      console.error('Failed to send support reply', error);
+    }
+  };
+
   const openNewPage = () => {
     setEditingPage(null);
     setPageForm({ title: "", slug: "", content: "", sort_order: 0 });
@@ -774,6 +861,9 @@ const Admin = () => {
             <button onClick={() => setTab("users")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "users" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <User2 className="h-5 w-5" />Người dùng
             </button>
+            <button onClick={() => setTab("support")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "support" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
+              <MessageSquare className="h-5 w-5" />Hỗ trợ
+            </button>
             <button onClick={() => setTab("services")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "services" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <Truck className="h-5 w-5" />Dịch vụ
             </button>
@@ -796,6 +886,7 @@ const Admin = () => {
             <Button variant={tab === "products" ? "default" : "outline"} size="sm" onClick={() => setTab("products")}><Package className="h-4 w-4 mr-1" />Sản phẩm</Button>
             <Button variant={tab === "orders" ? "default" : "outline"} size="sm" onClick={() => setTab("orders")}><ShoppingBag className="h-4 w-4 mr-1" />Đơn hàng</Button>
             <Button variant={tab === "users" ? "default" : "outline"} size="sm" onClick={() => setTab("users")}><User2 className="h-4 w-4 mr-1" />Người dùng</Button>
+            <Button variant={tab === "support" ? "default" : "outline"} size="sm" onClick={() => setTab("support")}><MessageSquare className="h-4 w-4 mr-1" />Hỗ trợ</Button>
             <Button variant={tab === "services" ? "default" : "outline"} size="sm" onClick={() => setTab("services")}><Truck className="h-4 w-4 mr-1" />Dịch vụ</Button>
             <Button variant={tab === "posts" ? "default" : "outline"} size="sm" onClick={() => setTab("posts")}><FileText className="h-4 w-4 mr-1" />Bài đăng</Button>
             <Button variant={tab === "pages" ? "default" : "outline"} size="sm" onClick={() => setTab("pages")}><FileEdit className="h-4 w-4 mr-1" />Trang</Button>
@@ -830,6 +921,30 @@ const Admin = () => {
               <p className="text-sm text-muted-foreground">Chưa có bài đăng để hiển thị.</p>
             )}
           </div>
+
+          <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+            <button
+              onClick={() => setIsSupportPopupOpen((open) => !open)}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-white shadow-lg hover:bg-emerald-700 transition"
+            >
+              <MessageSquare className="h-4 w-4" />
+              {isSupportPopupOpen ? 'Đóng chat' : 'Hỗ trợ admin'}
+            </button>
+          </div>
+
+          {isSupportPopupOpen && (
+            <div className="fixed right-6 bottom-20 z-50 w-[430px] h-[540px] bg-white border border-slate-200 rounded-lg shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between bg-emerald-600 text-white px-3 py-2">
+                <span className="font-semibold">Admin Chat</span>
+                <button className="px-2 py-1 rounded bg-emerald-500 hover:bg-emerald-400" onClick={() => setIsSupportPopupOpen(false)}>
+                  ✕
+                </button>
+              </div>
+              <div className="h-[calc(100%-44px)] overflow-auto">
+                <CRMChat />
+              </div>
+            </div>
+          )}
 
           {tab === "products" && (
             <div>
@@ -1166,6 +1281,13 @@ const Admin = () => {
                   <div className="p-8 text-center text-muted-foreground">Chưa có dữ liệu người dùng</div>
                 )}
               </div>
+            </div>
+          )}
+
+          {tab === "support" && (
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Quản lý CRM - Chat với khách hàng</h2>
+              <CRMChat />
             </div>
           )}
 

@@ -1,9 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { BlogPost } from "@/data/products";
 import { blogPosts as staticBlogPosts } from "@/data/products";
 
-const mapDbPostToUi = (p: any): BlogPost => ({
+type SupabaseBlogPost = {
+  id: number | string;
+  title?: string;
+  excerpt?: string;
+  image_url?: string;
+  slug?: string;
+  created_at?: string;
+};
+
+const mapDbPostToUi = (p: SupabaseBlogPost): BlogPost => ({
   id: String(p.id),
   title: String(p.title ?? ""),
   excerpt: String(p.excerpt ?? ""),
@@ -13,12 +22,17 @@ const mapDbPostToUi = (p: any): BlogPost => ({
 });
 
 export const useBlogPosts = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabaseAny = supabase as any;
 
   return useQuery({
     queryKey: ["blog_posts"],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
+      if (!isSupabaseConfigured) {
+        return staticBlogPosts;
+      }
+
       try {
         const { data, error } = await supabaseAny
           .from("blog_posts")
@@ -28,7 +42,7 @@ export const useBlogPosts = () => {
         if (error) throw error;
         if (!data || !Array.isArray(data) || data.length === 0) return staticBlogPosts;
 
-        return (data as any[]).map(mapDbPostToUi);
+        return (data as SupabaseBlogPost[]).map(mapDbPostToUi);
       } catch {
         return staticBlogPosts;
       }
