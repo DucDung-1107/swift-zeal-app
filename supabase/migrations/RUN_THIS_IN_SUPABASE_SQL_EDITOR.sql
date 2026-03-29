@@ -159,5 +159,38 @@ WITH CHECK (EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() A
 CREATE POLICY "Admins can delete user roles" ON public.user_roles
 FOR DELETE USING (EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = auth.uid() AND role::text = 'admin'));
 
--- 6. Reload PostgREST Cache so your app can see the tables!
+-- 6. Create RPC function for admin role updates (bypasses RLS)
+CREATE OR REPLACE FUNCTION public.admin_update_user_role(
+  target_user_id UUID,
+  new_role TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Verify caller is admin
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = auth.uid() AND role = 'admin'::public.app_role
+  ) THEN
+    RAISE EXCEPTION 'Permission denied: only admins can change roles';
+  END IF;
+
+  -- Validate role value
+  IF new_role NOT IN ('admin', 'moderator', 'user') THEN
+    RAISE EXCEPTION 'Invalid role: %', new_role;
+  END IF;
+
+  -- Delete existing roles for target user
+  DELETE FROM public.user_roles WHERE user_id = target_user_id;
+
+  -- Insert the new role
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (target_user_id, new_role::public.app_role);
+END;
+$$;
+
+-- 7. Reload PostgREST Cache so your app can see the tables!
 NOTIFY pgrst, 'reload schema';
