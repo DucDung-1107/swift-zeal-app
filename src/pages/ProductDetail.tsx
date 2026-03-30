@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, Minus, Plus, ArrowLeft, Gift, Truck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,18 @@ const ProductDetail = () => {
   const { addItem } = useCart();
   const { data: product, isLoading } = useProduct(slug || "");
   const imageSrc = resolveImageSrc(product?.image_url);
+  const [showFullDesc, setShowFullDesc] = useState(false);
+
+  const formatDescriptionHtml = (text?: string | null) => {
+    if (!text) return "";
+    // Convert common separators and entities to simple HTML
+    let out = text.replace(/&nbsp;/g, ' ');
+    // Replace long underscore separators with hr
+    out = out.replace(/_{6,}/g, '<hr/>');
+    // Preserve newlines
+    out = out.replace(/\r\n|\r|\n/g, '<br/>');
+    return out;
+  };
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -85,6 +98,7 @@ const ProductDetail = () => {
           <div>
             <span className="text-sm text-accent font-medium">{product.brand}</span>
             <h1 className="text-2xl font-bold text-foreground mt-1">{product.name}</h1>
+            {product.sku && <div className="text-sm text-muted-foreground mt-1">Mã sản phẩm: {product.sku}</div>}
             <div className="flex flex-wrap items-center gap-3 mt-4">
               {hasDiscount(product) ? (
                 <>
@@ -115,6 +129,26 @@ const ProductDetail = () => {
               <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={!product.in_stock}>
                 <ShoppingCart className="h-5 w-5 mr-2" />{product.in_stock ? "Thêm vào giỏ hàng" : "Hết hàng"}
               </Button>
+            </div>
+            <div className="mt-6">
+              {product.description && (
+                <div className="prose max-w-none text-sm text-foreground">
+                  <h3 className="text-base font-medium">Mô tả sản phẩm</h3>
+                  <div>
+                                    <div
+                                      className={!showFullDesc ? 'line-clamp-4 text-sm text-foreground' : 'text-sm text-foreground'}
+                                      // eslint-disable-next-line react/no-danger
+                                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatDescriptionHtml(product.description)) }}
+                                    />
+                    <button
+                      className="mt-3 text-sm text-primary underline"
+                      onClick={() => setShowFullDesc((v) => !v)}
+                    >
+                      {showFullDesc ? 'Ẩn bớt' : 'Hiển thị tất cả'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="mt-8 space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground"><Truck className="h-5 w-5 text-primary" />Giao hàng toàn quốc</div>

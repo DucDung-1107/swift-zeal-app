@@ -70,11 +70,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </a>
       <div className="p-3">
         <span className="text-xs text-accent font-medium">{product.brand}</span>
+        {product.sku && (
+          <div className="text-xs text-muted-foreground mt-1">Mã: {product.sku}</div>
+        )}
         <a href={`/products/${product.slug}`}>
           <h3 className="text-sm font-medium text-foreground mt-1 line-clamp-2 hover:text-primary transition-colors min-h-[2.5rem]">
             {product.name}
           </h3>
         </a>
+        {product.description && (
+          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{product.description}</p>
+        )}
+        <div className="mt-2 text-xs">
+          <a href={`/products/${product.slug}`} className="text-primary hover:underline">Xem mô tả</a>
+        </div>
         <div className="flex items-center gap-2 mt-2">
           {showDiscount ? (
             <>
