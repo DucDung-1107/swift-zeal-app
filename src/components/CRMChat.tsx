@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 
-type Message = { id: number; sender: 'user' | 'admin' | 'agent'; content: string; created_at: string; };
+type Message = { id: number; sender: string; content: string; created_at: string; };
 type Conversation = {
   id: number;
   session_id: string;
@@ -15,7 +15,66 @@ const CRMChat = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [supportMessages, setSupportMessages] = useState<Message[]>([]);
+  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const [supportReply, setSupportReply] = useState('');
+  // Resolve sender display names: try to map UUID-like senders to profiles.full_name
+  const resolveSenderNames = async (messages: Message[]) => {
+    try {
+      const senders = Array.from(new Set((messages || []).map((m) => String(m.sender || '')))).filter(Boolean);
+      // Filter out known labels
+      const unknownIds = senders.filter((s) => !['admin', 'agent', 'user'].includes(s) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s));
+      if (unknownIds.length === 0) return;
+
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', unknownIds);
+        // Resolve sender display names: try to map UUID-like senders to profiles.full_name
+        const resolveSenderNames = async (messages: Message[]) => {
+          try {
+            const senders = Array.from(new Set((messages || []).map((m) => String(m.sender || '')))).filter(Boolean);
+            // Filter out known labels
+            const unknownIds = senders.filter((s) => !['admin', 'agent', 'user'].includes(s) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s));
+            if (unknownIds.length === 0) return;
+
+            const { data: profiles, error } = await supabase
+              .from('profiles')
+              .select('user_id, full_name')
+              .in('user_id', unknownIds);
+
+            if (error) {
+              console.error('Failed to resolve sender names', error);
+              return;
+            }
+
+            const map: Record<string, string> = {};
+            (profiles || []).forEach((p: any) => {
+              if (p?.user_id) map[String(p.user_id)] = p.full_name || String(p.user_id).slice(0, 8) + '...';
+            });
+
+            // Merge into existing senderNames
+            setSenderNames((prev) => ({ ...prev, ...map }));
+          } catch (e) {
+            // ignore
+          }
+        };
+
+      if (error) {
+        console.error('Failed to resolve sender names', error);
+        return;
+      }
+
+      const map: Record<string, string> = {};
+      (profiles || []).forEach((p: any) => {
+        if (p?.user_id) map[String(p.user_id)] = p.full_name || String(p.user_id).slice(0, 8) + '...';
+      });
+
+      // Merge into existing senderNames
+      setSenderNames((prev) => ({ ...prev, ...map }));
+    } catch (e) {
+      // ignore
+    }
+  };
 
   const loadSupportConversations = async () => {
     const { data, error } = await supabase
@@ -44,7 +103,7 @@ const CRMChat = () => {
       setSupportMessages(sorted[0].messages || []);
     }
   };
-
+          await resolveSenderNames(msgs);
   const loadConversation = async (id: number) => {
     const { data, error } = await supabase
       .from<Conversation>('conversations')
@@ -59,7 +118,9 @@ const CRMChat = () => {
     }
 
     setSelectedConversationId(id);
-    setSupportMessages(data.messages || []);
+    const msgs = data.messages || [];
+    setSupportMessages(msgs);
+    resolveSenderNames(msgs);
   };
 
   const sendSupportReply = async () => {
@@ -103,11 +164,15 @@ const CRMChat = () => {
 
     const messagesChannel = supabase
       .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const newMessage = payload.new as Message;
         // Update selected conversation detail
         if (selectedConversationId === newMessage.conversation_id) {
-          setSupportMessages((prev) => [...prev, newMessage]);
+          setSupportMessages((prev) => {
+            const next = [...prev, newMessage];
+            resolveSenderNames(next);
+            return next;
+          });
         }
         // Refresh conversation list for unread count and recent status.
         loadSupportConversations();
@@ -128,6 +193,36 @@ const CRMChat = () => {
       supabase.removeChannel(messagesChannel);
     };
   }, [selectedConversationId]);
+
+  // Resolve sender display names: try to map UUID-like senders to profiles.full_name
+  const resolveSenderNames = async (messages: Message[]) => {
+    try {
+      const senders = Array.from(new Set((messages || []).map((m) => String(m.sender || '')))).filter(Boolean);
+      // Filter out known labels
+      const unknownIds = senders.filter((s) => !['admin', 'agent', 'user'].includes(s) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s));
+      if (unknownIds.length === 0) return;
+
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', unknownIds);
+
+      if (error) {
+        console.error('Failed to resolve sender names', error);
+        return;
+      }
+
+      const map: Record<string, string> = {};
+      (profiles || []).forEach((p: any) => {
+        if (p?.user_id) map[String(p.user_id)] = p.full_name || String(p.user_id).slice(0, 8) + '...';
+      });
+
+      // Merge into existing senderNames
+      setSenderNames((prev) => ({ ...prev, ...map }));
+    } catch (e) {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     if (!selectedConversationId) return;
@@ -171,7 +266,10 @@ const CRMChat = () => {
               key={msg.id}
               className={`p-2 rounded-lg ${msg.sender === 'user' ? 'bg-white text-slate-900 self-start' : 'bg-emerald-100 text-emerald-900 self-end'}`}
             >
-              <p className="text-[10px] mb-1">{msg.sender}</p>
+              <p className="text-[10px] mb-1">{
+                senderNames[String(msg.sender)]
+                  ?? (msg.sender === 'admin' ? 'Admin' : msg.sender === 'agent' ? 'Bot' : msg.sender === 'user' ? 'Khách' : String(msg.sender).slice(0, 8) + '...')
+              }</p>
               <p>{msg.content}</p>
               <p className="text-[10px] text-muted-foreground mt-1">{new Date(msg.created_at).toLocaleString('vi-VN')}</p>
             </div>
