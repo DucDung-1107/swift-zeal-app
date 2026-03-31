@@ -443,7 +443,7 @@ const Chatbot = () => {
 
   return (
     <>
-      <FloatingActions onChatClick={() => setIsOpen(true)} zaloHref="https://zalo.me/086612167" phoneHref="tel:086612167" />
+      <FloatingActions onChatClick={() => setIsOpen(true)} zaloHref="https://zalo.me/0866121617" phoneHref="tel:086612167" />
       {isOpen && <ChatWindow onClose={() => setIsOpen(false)} />}
     </>
   );
