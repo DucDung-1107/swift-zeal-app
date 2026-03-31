@@ -103,7 +103,7 @@ const CRMChat = () => {
       setSupportMessages(sorted[0].messages || []);
     }
   };
-          await resolveSenderNames(msgs);
+          resolveSenderNames(msgs);
   const loadConversation = async (id: number) => {
     const { data, error } = await supabase
       .from<Conversation>('conversations')
