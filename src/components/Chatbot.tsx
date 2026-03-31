@@ -29,27 +29,127 @@ type SupabaseMessage = {
   created_at: string;
 };
 
-// Floating Chat Icon Component
-const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => (
-  <div
-    onClick={onClick}
-    style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      backgroundColor: '#004603',
-      color: 'white',
-      borderRadius: '50%',
-      width: '60px',
-      height: '60px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      cursor: 'pointer',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-    }}
-  >
-    <MessageSquare size={26} />
+// Floating Chat Icon Component (interactive)
+const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      title="Mở Chat"
+      aria-label="Open Chat"
+      style={{
+        width: '56px',
+        height: '56px',
+        borderRadius: '50%',
+        backgroundColor: '#196110',
+        color: 'white',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        cursor: 'pointer',
+        boxShadow: hover ? '0 12px 30px rgba(0,0,0,0.28)' : '0 6px 18px rgba(0,0,0,0.18)',
+        transform: hover ? 'translateY(-3px) scale(1.04)' : 'translateY(0) scale(1)',
+        transition: 'transform 160ms ease, box-shadow 160ms ease',
+        outline: 'none'
+      }}
+    >
+      <MessageSquare size={24} />
+    </div>
+  );
+};
+
+const ZaloFloatingButton = ({ href }: { href: string }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open Zalo chat"
+      title="Chat trên Zalo"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      style={{
+        width: '56px',
+        height: '56px',
+        borderRadius: '50%',
+        backgroundColor: 'white',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: hover ? '0 12px 30px rgba(16,128,255,0.28)' : '0 6px 18px rgba(16,128,255,0.18)',
+        transform: hover ? 'translateY(-3px) scale(1.04)' : 'translateY(0) scale(1)',
+        transition: 'transform 160ms ease, box-shadow 160ms ease',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        overflow: 'hidden',
+        outline: 'none'
+      }}
+    >
+      <img src="/zalo_icon.png" alt="Zalo" style={{ width: 28, height: 28, borderRadius: 999 }} />
+    </a>
+  );
+};
+
+const PhoneFloatingButton = ({ href }: { href: string }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <a
+      href={href}
+      aria-label="Call phone"
+      title="Gọi: 086612167"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      style={{
+        width: '56px',
+        height: '56px',
+        borderRadius: '50%',
+        backgroundColor: '#196110',
+        color: 'white',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: hover ? '0 12px 30px rgba(25, 97, 16, 0.28)' : '0 6px 18px rgba(25, 97, 16, 0.18)',
+        transform: hover ? 'translateY(-3px) scale(1.04)' : 'translateY(0) scale(1)',
+        transition: 'transform 160ms ease, box-shadow 160ms ease',
+        textDecoration: 'none',
+        cursor: 'pointer',
+        outline: 'none'
+      }}
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1C9.85 21 3 14.15 3 5a1 1 0 011-1h2.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z" fill="white" />
+      </svg>
+    </a>
+  );
+};
+
+const FloatingActions = ({ onChatClick, zaloHref, phoneHref }: { onChatClick: () => void; zaloHref: string; phoneHref: string }) => (
+  <div style={{ position: 'fixed', right: '20px', bottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', zIndex: 9999 }}>
+    <ZaloFloatingButton href={zaloHref} />
+    <PhoneFloatingButton href={phoneHref} />
+    <div
+      onClick={onChatClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChatClick(); } }}
+      title="Mở Chat"
+      aria-label="Open Chat"
+      style={{ outline: 'none' }}
+    >
+      <FloatingChatIcon onClick={onChatClick} />
+    </div>
   </div>
 );
 
@@ -215,9 +315,9 @@ const ChatWindow = ({ onClose }) => {
   };
 
   const quickReplies = [
-    'Giá bao nhiêu?',
-    'Mua ở đâu?',
-    'Chính sách đổi trả thế nào?',
+    'Tôi muốn tư vấn về sản phẩm',
+    'Shop của bạn ở địa chỉ nào?',
+    'Chính sách đổi trả của shop thế nào?',
   ];
 
   return (
@@ -238,7 +338,7 @@ const ChatWindow = ({ onClose }) => {
     >
       <div
         style={{
-          backgroundColor: '#004603',
+          backgroundColor: '#196110',
           color: 'white',
           padding: '12px 14px',
           display: 'flex',
@@ -276,7 +376,7 @@ const ChatWindow = ({ onClose }) => {
                 display: 'inline-block',
                 padding: '8px 12px',
                 borderRadius: '16px',
-                backgroundColor: msg.sender === 'user' ? '#004603' : '#f1f1f1',
+                backgroundColor: msg.sender === 'user' ? '#196110' : '#f1f1f1',
                 color: msg.sender === 'user' ? 'white' : 'black',
               }}
             >
@@ -320,7 +420,7 @@ const ChatWindow = ({ onClose }) => {
           style={{
             width: '44px',
             height: '44px',
-            backgroundColor: '#004603',
+            backgroundColor: '#196110',
             color: 'white',
             border: 'none',
             borderRadius: '999px',
@@ -343,7 +443,7 @@ const Chatbot = () => {
 
   return (
     <>
-      <FloatingChatIcon onClick={() => setIsOpen(true)} />
+      <FloatingActions onChatClick={() => setIsOpen(true)} zaloHref="https://zalo.me/086612167" phoneHref="tel:086612167" />
       {isOpen && <ChatWindow onClose={() => setIsOpen(false)} />}
     </>
   );
