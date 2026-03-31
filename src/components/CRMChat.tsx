@@ -21,7 +21,6 @@ const CRMChat = () => {
   const resolveSenderNames = async (messages: Message[]) => {
     try {
       const senders = Array.from(new Set((messages || []).map((m) => String(m.sender || '')))).filter(Boolean);
-      // Filter out known labels
       const unknownIds = senders.filter((s) => !['admin', 'agent', 'user'].includes(s) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s));
       if (unknownIds.length === 0) return;
 
@@ -29,35 +28,6 @@ const CRMChat = () => {
         .from('profiles')
         .select('user_id, full_name')
         .in('user_id', unknownIds);
-        // Resolve sender display names: try to map UUID-like senders to profiles.full_name
-        const resolveSenderNames = async (messages: Message[]) => {
-          try {
-            const senders = Array.from(new Set((messages || []).map((m) => String(m.sender || '')))).filter(Boolean);
-            // Filter out known labels
-            const unknownIds = senders.filter((s) => !['admin', 'agent', 'user'].includes(s) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s));
-            if (unknownIds.length === 0) return;
-
-            const { data: profiles, error } = await supabase
-              .from('profiles')
-              .select('user_id, full_name')
-              .in('user_id', unknownIds);
-
-            if (error) {
-              console.error('Failed to resolve sender names', error);
-              return;
-            }
-
-            const map: Record<string, string> = {};
-            (profiles || []).forEach((p: any) => {
-              if (p?.user_id) map[String(p.user_id)] = p.full_name || String(p.user_id).slice(0, 8) + '...';
-            });
-
-            // Merge into existing senderNames
-            setSenderNames((prev) => ({ ...prev, ...map }));
-          } catch (e) {
-            // ignore
-          }
-        };
 
       if (error) {
         console.error('Failed to resolve sender names', error);
@@ -69,7 +39,6 @@ const CRMChat = () => {
         if (p?.user_id) map[String(p.user_id)] = p.full_name || String(p.user_id).slice(0, 8) + '...';
       });
 
-      // Merge into existing senderNames
       setSenderNames((prev) => ({ ...prev, ...map }));
     } catch (e) {
       // ignore
@@ -102,9 +71,8 @@ const CRMChat = () => {
       setSelectedConversationId(sorted[0].id);
       setSupportMessages(sorted[0].messages || []);
     }
-  };
-          resolveSenderNames(msgs);
-  const loadConversation = async (id: number) => {
+    };
+    const loadConversation = async (id: number) => {
     const { data, error } = await supabase
       .from<Conversation>('conversations')
       .select('*, messages(*)')
@@ -194,35 +162,7 @@ const CRMChat = () => {
     };
   }, [selectedConversationId]);
 
-  // Resolve sender display names: try to map UUID-like senders to profiles.full_name
-  const resolveSenderNames = async (messages: Message[]) => {
-    try {
-      const senders = Array.from(new Set((messages || []).map((m) => String(m.sender || '')))).filter(Boolean);
-      // Filter out known labels
-      const unknownIds = senders.filter((s) => !['admin', 'agent', 'user'].includes(s) && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s));
-      if (unknownIds.length === 0) return;
-
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .in('user_id', unknownIds);
-
-      if (error) {
-        console.error('Failed to resolve sender names', error);
-        return;
-      }
-
-      const map: Record<string, string> = {};
-      (profiles || []).forEach((p: any) => {
-        if (p?.user_id) map[String(p.user_id)] = p.full_name || String(p.user_id).slice(0, 8) + '...';
-      });
-
-      // Merge into existing senderNames
-      setSenderNames((prev) => ({ ...prev, ...map }));
-    } catch (e) {
-      // ignore
-    }
-  };
+  
 
   useEffect(() => {
     if (!selectedConversationId) return;
