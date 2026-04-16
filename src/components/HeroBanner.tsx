@@ -1,24 +1,26 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import heroBanner from "@/assets/banners/hero-banner.jpg";
-
-const slides = [
-  {
-    image: heroBanner,
-    alt: "Phúc Vinh Solar - Giải pháp chiếu sáng năng lượng mặt trời",
-    link: "/collections/all",
-  },
-];
+import { useSiteConfig } from "@/hooks/useSiteConfig";
+import heroBannerFallback from "@/assets/banners/hero-banner.jpg";
 
 const HeroBanner = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { config } = useSiteConfig();
+
+  const slides = [
+    {
+      image: config.hero_banner_url || heroBannerFallback,
+      alt: config.hero_title || "Phúc Vinh Solar",
+      link: "/collections/all",
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   return (
     <section className="relative w-full overflow-hidden">
