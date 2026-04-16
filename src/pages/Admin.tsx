@@ -1575,6 +1575,8 @@ const Admin = () => {
               </div>
             </div>
           )}
+
+          {tab === "config" && <SiteConfigEditor />}
         </main>
       </div>
     </div>
