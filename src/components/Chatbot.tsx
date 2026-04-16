@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Send } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../integrations/supabase/client';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 const API_BASE = null;
 
@@ -135,10 +136,14 @@ const PhoneFloatingButton = ({ href }: { href: string }) => {
   );
 };
 
-const FloatingActions = ({ onChatClick, zaloHref, phoneHref }: { onChatClick: () => void; zaloHref: string; phoneHref: string }) => (
+const FloatingActionsInner = ({ onChatClick, zaloHref, phoneHref }: { onChatClick: () => void; zaloHref?: string; phoneHref?: string }) => {
+  const { config } = useSiteConfig();
+  const zalo = zaloHref || `https://zalo.me/${config.zalo_number || '0866121617'}`;
+  const phone = phoneHref || `tel:${config.phone || '0866121617'}`;
+  return (
   <div style={{ position: 'fixed', right: '20px', bottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', zIndex: 9999 }}>
-    <ZaloFloatingButton href={zaloHref} />
-    <PhoneFloatingButton href={phoneHref} />
+    <ZaloFloatingButton href={zalo} />
+    <PhoneFloatingButton href={phone} />
     <div
       onClick={onChatClick}
       role="button"
@@ -151,7 +156,8 @@ const FloatingActions = ({ onChatClick, zaloHref, phoneHref }: { onChatClick: ()
       <FloatingChatIcon onClick={onChatClick} />
     </div>
   </div>
-);
+  );
+};
 
 // Chat Window Component
 const ChatWindow = ({ onClose }) => {
@@ -443,7 +449,7 @@ const Chatbot = () => {
 
   return (
     <>
-      <FloatingActions onChatClick={() => setIsOpen(true)} zaloHref="https://zalo.me/0866121617" phoneHref="tel:086612167" />
+      <FloatingActionsInner onChatClick={() => setIsOpen(true)} />
       {isOpen && <ChatWindow onClose={() => setIsOpen(false)} />}
     </>
   );

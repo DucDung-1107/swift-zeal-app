@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import CRMChat from "@/components/CRMChat";
+import SiteConfigEditor from "@/components/SiteConfigEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2, MessageSquare } from "lucide-react";
+import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2, MessageSquare, Settings } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
 import { categories, blogPosts as staticBlogPosts } from "@/data/products";
@@ -72,7 +73,7 @@ const Admin = () => {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages" | "support">("products");
+  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages" | "support" | "config">("products");
   const [isSupportPopupOpen, setIsSupportPopupOpen] = useState(false);
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
@@ -879,8 +880,8 @@ const Admin = () => {
             <button onClick={() => setTab("posts")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "posts" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <FileText className="h-5 w-5" />Bài đăng
             </button>
-            <button onClick={() => setTab("pages")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "pages" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
-              <FileEdit className="h-5 w-5" />Trang nội dung
+            <button onClick={() => setTab("config")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "config" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
+              <Settings className="h-5 w-5" />Cấu hình
             </button>
           </nav>
           <div className="mt-auto pt-8 space-y-2">
@@ -899,6 +900,7 @@ const Admin = () => {
             <Button variant={tab === "services" ? "default" : "outline"} size="sm" onClick={() => setTab("services")}><Truck className="h-4 w-4 mr-1" />Dịch vụ</Button>
             <Button variant={tab === "posts" ? "default" : "outline"} size="sm" onClick={() => setTab("posts")}><FileText className="h-4 w-4 mr-1" />Bài đăng</Button>
             <Button variant={tab === "pages" ? "default" : "outline"} size="sm" onClick={() => setTab("pages")}><FileEdit className="h-4 w-4 mr-1" />Trang</Button>
+            <Button variant={tab === "config" ? "default" : "outline"} size="sm" onClick={() => setTab("config")}><Settings className="h-4 w-4 mr-1" />Cấu hình</Button>
             <a href="/" className="ml-auto"><Button variant="ghost" size="sm"><Home className="h-4 w-4" /></Button></a>
           </div>
 
@@ -1573,6 +1575,8 @@ const Admin = () => {
               </div>
             </div>
           )}
+
+          {tab === "config" && <SiteConfigEditor />}
         </main>
       </div>
     </div>
