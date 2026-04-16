@@ -449,7 +449,7 @@ const Chatbot = () => {
 
   return (
     <>
-      <FloatingActions onChatClick={() => setIsOpen(true)} />
+      <FloatingActionsInner onChatClick={() => setIsOpen(true)} />
       {isOpen && <ChatWindow onClose={() => setIsOpen(false)} />}
     </>
   );
