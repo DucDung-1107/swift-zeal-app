@@ -156,7 +156,8 @@ const FloatingActionsInner = ({ onChatClick, zaloHref, phoneHref }: { onChatClic
       <FloatingChatIcon onClick={onChatClick} />
     </div>
   </div>
-);
+  );
+};
 
 // Chat Window Component
 const ChatWindow = ({ onClose }) => {
