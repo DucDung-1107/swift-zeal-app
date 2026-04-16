@@ -135,7 +135,7 @@ const PhoneFloatingButton = ({ href }: { href: string }) => {
   );
 };
 
-const FloatingActions = ({ onChatClick, zaloHref, phoneHref }: { onChatClick: () => void; zaloHref: string; phoneHref: string }) => (
+const FloatingActions = ({ onChatClick, zaloHref, phoneHref }: { onChatClick: () => void; zaloHref?: string; phoneHref?: string }) => (
   <div style={{ position: 'fixed', right: '20px', bottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center', zIndex: 9999 }}>
     <ZaloFloatingButton href={zaloHref} />
     <PhoneFloatingButton href={phoneHref} />
