@@ -47,10 +47,10 @@ const CRMChat = () => {
 
   const loadSupportConversations = async () => {
     const { data, error } = await supabase
-      .from<Conversation>('conversations')
+      .from('conversations')
       .select('*, messages(*)')
       .order('unread_count', { ascending: false })
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }) as any;
 
     if (error) {
       console.error('Cannot load conversations', error);
@@ -74,10 +74,10 @@ const CRMChat = () => {
     };
     const loadConversation = async (id: number) => {
     const { data, error } = await supabase
-      .from<Conversation>('conversations')
+      .from('conversations')
       .select('*, messages(*)')
       .eq('id', id)
-      .single();
+      .single() as any;
 
     if (error || !data) {
       console.error('Cannot load conversation', error);
@@ -135,7 +135,7 @@ const CRMChat = () => {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const newMessage = payload.new as Message;
         // Update selected conversation detail
-        if (selectedConversationId === newMessage.conversation_id) {
+        if (selectedConversationId === (newMessage as any).conversation_id) {
           setSupportMessages((prev) => {
             const next = [...prev, newMessage];
             resolveSenderNames(next);

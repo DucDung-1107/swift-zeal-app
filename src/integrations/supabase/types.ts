@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversations: {
+        Row: {
+          created_at: string
+          id: number
+          session_id: string
+          status: string
+          unread_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          session_id: string
+          status?: string
+          unread_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          session_id?: string
+          status?: string
+          unread_count?: number
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: number | null
+          created_at: string
+          id: number
+          sender: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: number | null
+          created_at?: string
+          id?: never
+          sender: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: number | null
+          created_at?: string
+          id?: never
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -248,65 +304,25 @@ export type Database = {
         }
         Relationships: []
       }
-      conversations: {
-        Row: {
-          id: number
-          session_id: string
-          status: string
-          unread_count: number
-          created_at: string
-        }
-        Insert: {
-          id?: number
-          session_id: string
-          status?: string
-          unread_count?: number
-          created_at?: string
-        }
-        Update: {
-          id?: number
-          session_id?: string
-          status?: string
-          unread_count?: number
-          created_at?: string
-        }
-        Relationships: []
-      }
-      messages: {
-        Row: {
-          id: number
-          conversation_id: number | null
-          content: string
-          sender: string
-          created_at: string
-        }
-        Insert: {
-          id?: number
-          conversation_id?: number | null
-          content: string
-          sender: string
-          created_at?: string
-        }
-        Update: {
-          id?: number
-          conversation_id?: number | null
-          content?: string
-          sender?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_update_user_role: {
+        Args: { new_role: string; target_user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      update_user_role: {
+        Args: { new_role: string; target_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

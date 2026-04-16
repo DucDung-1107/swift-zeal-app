@@ -731,11 +731,11 @@ const Admin = () => {
 
   const loadSupportConversations = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from('conversations')
         .select('*, messages(*)')
         .order('unread_count', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as any);
 
       if (error) throw error;
 
@@ -760,11 +760,11 @@ const Admin = () => {
 
   const loadConversation = async (id: number) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from('conversations')
         .select('*, messages(*)')
         .eq('id', id)
-        .single();
+        .single() as any);
 
       if (error) throw error;
       setSupportMessages(data.messages || []);
