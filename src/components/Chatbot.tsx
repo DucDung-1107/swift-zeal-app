@@ -188,12 +188,12 @@ const ChatWindow = ({ onClose }) => {
         return;
       }
 
-      const { data: existingConversation, error: existingError } = await supabase
-        .from<SupabaseConversation>('conversations')
+      const { data: existingConversation, error: existingError } = await (supabase
+        .from('conversations')
         .select('id, status, unread_count')
         .eq('session_id', sessionId)
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as any);
 
       if (existingError) {
         console.error('Error checking conversation', existingError);
@@ -208,11 +208,11 @@ const ChatWindow = ({ onClose }) => {
       if (existingConversation?.id) {
         convId = existingConversation.id;
       } else {
-        const { data: newConversation, error: insertError } = await supabase
-          .from<SupabaseConversation>('conversations')
-          .insert({ session_id: sessionId, status: 'open', unread_count: 0 })
+        const { data: newConversation, error: insertError } = await (supabase
+          .from('conversations')
+          .insert({ session_id: sessionId, status: 'open', unread_count: 0 } as any)
           .select('*')
-          .single();
+          .single() as any);
 
         if (insertError || !newConversation) {
           console.error('Error creating conversation', insertError);
@@ -226,11 +226,11 @@ const ChatWindow = ({ onClose }) => {
 
       setConversationId(convId);
 
-      const { data: messageData, error: messageError } = await supabase
-        .from<SupabaseMessage>('messages')
+      const { data: messageData, error: messageError } = await (supabase
+        .from('messages')
         .select('*')
         .eq('conversation_id', convId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true }) as any);
 
       if (messageError) {
         console.error('Error loading messages', messageError);
