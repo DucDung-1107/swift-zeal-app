@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2, MessageSquare, Settings } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
-import { categories, blogPosts as staticBlogPosts } from "@/data/products";
+import { blogPosts as staticBlogPosts } from "@/data/products";
 
 type Order = Tables<"orders">;
 
@@ -849,6 +849,37 @@ const Admin = () => {
       fetchPages();
     } catch (e: any) {
       toast({ title: "Lỗi xóa trang", description: e?.message, variant: "destructive" });
+    }
+  };
+
+  const refetchCategories = async () => {
+    try {
+      const { data } = await supabase.from("categories").select("*").order("name", { ascending: true });
+      setCategories(data || []);
+    } catch (error) {
+      toast({ title: "Error fetching categories", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const saveCategory = async (category) => {
+    try {
+      const { error } = await supabase.from("categories").upsert(category);
+      if (error) throw error;
+      toast({ title: "Category saved successfully" });
+      refetchCategories(); // Refetch categories
+    } catch (error) {
+      toast({ title: "Error saving category", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const deleteCategory = async (categoryId) => {
+    try {
+      const { error } = await supabase.from("categories").delete().eq("id", categoryId);
+      if (error) throw error;
+      toast({ title: "Category deleted successfully" });
+      refetchCategories(); // Refetch categories
+    } catch (error) {
+      toast({ title: "Error deleting category", description: error.message, variant: "destructive" });
     }
   };
 
