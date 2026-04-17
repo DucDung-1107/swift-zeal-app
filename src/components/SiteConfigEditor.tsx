@@ -201,7 +201,7 @@ const SiteConfigEditor = () => {
         {/* Config form */}
         <div className="space-y-6">
           {CONFIG_SECTIONS.map((section) => (
-            <div key={section.title} className="bg-card border rounded-lg p-5">
+            <div key={section.title} className="border rounded-lg p-5" style={{ backgroundColor: config.card_color }}>
               <div className="flex items-center gap-2 mb-4">
                 <section.icon className="h-5 w-5 text-primary" />
                 <h3 className="font-semibold text-foreground">{section.title}</h3>
@@ -262,11 +262,11 @@ const SiteConfigEditor = () => {
                           </Button>
                         </div>
                         {draft[field.key] && (
-                          <div className="relative w-full max-w-xs rounded-md overflow-hidden border">
+                          <div className="relative w-full max-w-xs rounded-md overflow-hidden border" style={{ backgroundColor: config.muted_color }}>
                             <img
                               src={draft[field.key]}
                               alt={field.label}
-                              className="w-full h-auto max-h-32 object-contain bg-muted"
+                              className="w-full h-auto max-h-32 object-contain"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = "none";
                               }}
@@ -301,8 +301,8 @@ const SiteConfigEditor = () => {
         {/* Live preview */}
         {showPreview && (
           <div className="sticky top-4 space-y-4">
-            <div className="bg-card border rounded-lg overflow-hidden">
-              <div className="bg-muted px-4 py-2 border-b flex items-center justify-between">
+            <div className="border rounded-lg overflow-hidden" style={{ backgroundColor: config.card_color }}>
+              <div className="px-4 py-2 border-b flex items-center justify-between" style={{ backgroundColor: config.muted_color }}>
                 <span className="text-sm font-medium text-muted-foreground">Preview Landing Page</span>
                 <a href="/" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                   <ExternalLink className="h-3 w-3" /> Mở trang chủ
@@ -310,7 +310,7 @@ const SiteConfigEditor = () => {
               </div>
 
               {/* Mini header preview */}
-              <div className="p-3 border-b" style={{ backgroundColor: draft.primary_color || "#0B4F3A" }}>
+              <div className="p-3 border-b" style={{ backgroundColor: config.card_color }}>
                 <div className="flex items-center gap-3">
                   {draft.logo_url ? (
                     <img src={draft.logo_url} alt="Logo" className="h-8 object-contain" />
@@ -326,7 +326,7 @@ const SiteConfigEditor = () => {
                 {draft.hero_banner_url ? (
                   <img src={draft.hero_banner_url} alt="Hero" className="w-full h-40 object-cover" />
                 ) : (
-                  <div className="w-full h-40 bg-gradient-to-r from-primary/20 to-secondary/20 flex flex-col items-center justify-center">
+                  <div className="w-full h-40 flex flex-col items-center justify-center" style={{ background: `linear-gradient(to right, ${config.primary_color}/20, ${config.secondary_color}/20)` }}>
                     <span className="text-lg font-bold text-foreground">{draft.hero_title || "Tiêu đề"}</span>
                     <span className="text-sm text-muted-foreground">{draft.hero_subtitle || "Phụ đề"}</span>
                   </div>
@@ -340,7 +340,7 @@ const SiteConfigEditor = () => {
                     {url ? (
                       <img src={url} alt={`Promo ${i + 1}`} className="w-full h-20 object-cover" />
                     ) : (
-                      <div className="w-full h-20 bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                      <div className="w-full h-20 flex items-center justify-center text-xs text-muted-foreground" style={{ backgroundColor: config.muted_color }}>
                         Banner QC {i + 1}
                       </div>
                     )}
@@ -349,7 +349,7 @@ const SiteConfigEditor = () => {
               </div>
 
               {/* Contact info preview */}
-              <div className="p-3 border-t bg-muted/50 text-xs space-y-1">
+              <div className="p-3 border-t text-xs space-y-1" style={{ backgroundColor: config.muted_color }}>
                 <div className="flex items-center gap-2">
                   <Phone className="h-3 w-3 text-primary" />
                   <span>{draft.phone || "SĐT"}</span>
@@ -369,14 +369,14 @@ const SiteConfigEditor = () => {
                   { label: "Nền", color: draft.accent_color },
                 ].map((c) => (
                   <div key={c.label} className="flex items-center gap-1">
-                    <div className="h-5 w-5 rounded-full border" style={{ backgroundColor: c.color || "#ccc" }} />
+                    <div className="h-5 w-5 rounded-full border" style={{ backgroundColor: c.color || config.muted_color }} />
                     <span className="text-xs">{c.label}</span>
                   </div>
                 ))}
               </div>
 
               {/* Footer preview */}
-              <div className="p-2 text-center text-xs bg-foreground text-background">
+              <div className="p-2 text-center text-xs text-background" style={{ backgroundColor: config.foreground_color }}>
                 {draft.footer_text || "Footer text"}
               </div>
             </div>

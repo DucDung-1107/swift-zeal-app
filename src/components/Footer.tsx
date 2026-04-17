@@ -22,7 +22,7 @@ const Footer = () => {
               <Input
                 placeholder="Nhập email của bạn"
                 className="md:w-72"
-                style={{ backgroundColor: config.accent_color, color: config.primary_color }}
+                style={{ backgroundColor: config.secondary_color, color: config.accent_color }}
               />
               <Button
                 className="font-bold px-6"

@@ -77,7 +77,7 @@ const Header = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pr-12 border-border rounded-md"
             />
-            <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none" style={{ backgroundColor: config.secondary_color }}>
+            <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none" style={{ backgroundColor: config.primary_color }}>
               <Search className="h-4 w-4" style={{ color: config.accent_color }} />
             </Button>
           </div>
@@ -112,7 +112,7 @@ const Header = () => {
             )}
             <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-2 text-foreground hover:text-primary transition-colors relative">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+              <span className="absolute -top-2 -right-2" style={{ backgroundColor: config.destructive_color, color: config.destructive_foreground_color }} className="text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                 {totalItems}
               </span>
             </button>
@@ -197,7 +197,7 @@ const Header = () => {
         </div>
       </div>
 
-      <nav className="bg-foreground">
+      <nav style={{ backgroundColor: config.foreground_color }}>
         <div className="container mx-auto">
           <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center">
@@ -213,7 +213,7 @@ const Header = () => {
                     {item.children && <ChevronDown className="h-3 w-3" />}
                   </a>
                   {item.children && showDropdown && (
-                    <div className="absolute top-full left-0 bg-background shadow-lg rounded-b-md min-w-[200px] z-50 border">
+                    <div className="absolute top-full left-0" style={{ backgroundColor: config.background_color }} className="shadow-lg rounded-b-md min-w-[200px] z-50 border">
                       {item.children.map((child) => (
                         <a key={child.label} href={child.href} className="block px-4 py-2.5 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors">
                           {child.label}
@@ -228,7 +228,7 @@ const Header = () => {
         </div>
       </nav>
 
-      <div className="md:hidden px-4 py-2 bg-muted">
+      <div className="md:hidden px-4 py-2" style={{ backgroundColor: config.muted_color }}>
         <div className="relative">
           <Input
             type="text"
@@ -237,8 +237,8 @@ const Header = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10"
           />
-          <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none bg-primary">
-            <Search className="h-4 w-4 text-primary-foreground" />
+          <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none" style={{ backgroundColor: config.primary_color }}>
+            <Search className="h-4 w-4" style={{ color: config.accent_color }} />
           </Button>
         </div>
       </div>
