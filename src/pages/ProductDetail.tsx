@@ -137,7 +137,6 @@ const ProductDetail = () => {
                   <div>
                                     <div
                                       className={!showFullDesc ? 'line-clamp-4 text-sm text-foreground' : 'text-sm text-foreground'}
-                                      // eslint-disable-next-line react/no-danger
                                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatDescriptionHtml(product.description)) }}
                                     />
                     <button

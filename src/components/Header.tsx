@@ -12,6 +12,7 @@ import { useServices } from "@/hooks/useServices";
 
 const Header = () => {
   const { config } = useSiteConfig();
+  const { data: services = [] } = useServices();
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const { user, signOut } = useAuth();
