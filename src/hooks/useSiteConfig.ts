@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 export type SiteConfig = Record<string, string>;
 
@@ -25,9 +26,33 @@ const DEFAULT_CONFIG: SiteConfig = {
 
 let cachedConfig: SiteConfig | null = null;
 let listeners: Array<(config: SiteConfig) => void> = [];
+let siteConfigChannel: RealtimeChannel | null = null;
 
 const notifyListeners = (config: SiteConfig) => {
   listeners.forEach((fn) => fn(config));
+};
+
+const subscribeToSiteConfigChanges = () => {
+  if (!siteConfigChannel) {
+    siteConfigChannel = supabase
+      .channel('public:site_config')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_config' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+          fetchSiteConfig().then((config) => {
+            cachedConfig = config;
+            notifyListeners(config);
+          });
+        }
+      })
+      .subscribe();
+  }
+};
+
+const unsubscribeFromSiteConfigChanges = () => {
+  if (siteConfigChannel) {
+    supabase.removeChannel(siteConfigChannel);
+    siteConfigChannel = null;
+  }
 };
 
 export const fetchSiteConfig = async (): Promise<SiteConfig> => {
@@ -80,3 +105,11 @@ export const useSiteConfig = () => {
 
   return { config, loading, refetch: fetchSiteConfig };
 };
+
+// Call subscribeToSiteConfigChanges when the module is loaded
+subscribeToSiteConfigChanges();
+
+// Ensure cleanup when the app is closed
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', unsubscribeFromSiteConfigChanges);
+}

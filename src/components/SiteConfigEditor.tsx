@@ -60,6 +60,13 @@ const CONFIG_SECTIONS = [
       { key: "footer_text", label: "Dòng cuối footer", type: "text" },
     ],
   },
+  {
+    title: "Danh mục sản phẩm",
+    icon: Type,
+    fields: [
+      { key: "categories", label: "Danh mục sản phẩm (JSON)", type: "textarea" },
+    ],
+  },
 ];
 
 const SiteConfigEditor = () => {

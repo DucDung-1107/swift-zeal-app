@@ -1,6 +1,33 @@
-import { categories } from "@/data/products";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const CategoryBanner = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase.from("categories").select("*").order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return;
+      }
+      setCategories(data || []);
+    };
+
+    fetchCategories();
+
+    const categoryChannel = supabase
+      .channel("public:categories")
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => {
+        fetchCategories();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(categoryChannel);
+    };
+  }, []);
+
   return (
     <section className="container mx-auto py-8">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

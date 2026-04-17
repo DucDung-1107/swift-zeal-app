@@ -1,36 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import { useProducts } from "@/hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const tabs = [
-  { id: "all", label: "TẤT CẢ" },
-  { id: "den-pha", label: "ĐÈN PHA" },
-  { id: "den-duong", label: "ĐÈN ĐƯỜNG" },
-  { id: "den-lien-the", label: "ĐÈN LIỀN THỂ" },
-  { id: "den-khan-cap", label: "ĐÈN KHẨN CẤP" },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 const NewCollection = () => {
   const [activeTab, setActiveTab] = useState("all");
   const { data: products, isLoading } = useProducts(activeTab);
+  const [categories, setCategories] = useState([{ id: "all", name: "TẤT CẢ" }]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data, error } = await supabase.from("categories").select("id, name, slug").order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return;
+      }
+      setCategories([{ id: "all", name: "TẤT CẢ" }, ...(data || [])]);
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <section className="container mx-auto py-8">
       <h2 className="text-2xl font-bold text-foreground mb-6">BỘ SƯU TẬP MỚI</h2>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {tabs.map((tab) => (
+        {categories.map((cat) => (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            key={cat.id}
+            onClick={() => setActiveTab(cat.id)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id
+              activeTab === cat.id
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
-            {tab.label}
+            {cat.name}
           </button>
         ))}
       </div>

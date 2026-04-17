@@ -5,34 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import logo from "/logo.png";
-import { categories } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
 import { useServices } from "@/hooks/useServices";
 
-const navItems = [
-  { label: "TRANG CHỦ", href: "/" },
-  {
-    label: "SẢN PHẨM",
-    href: "/collections/all",
-    children: [
-      ...categories.map((cat) => ({
-        label: cat.name,
-        href: `/collections/${cat.slug}`,
-      })),
-    ],
-  },
-  { label: "BLOG", href: "/blog" },
-  { label: "GIỚI THIỆU", href: "/gioi-thieu" },
-];
-
 const Header = () => {
+  const { config } = useSiteConfig();
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const { user, signOut } = useAuth();
   const { totalItems, setIsCartOpen } = useCart();
   const [isAdmin, setIsAdmin] = useState(false);
-  const { data: services } = useServices();
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -45,17 +30,42 @@ const Header = () => {
       if (mounted) setIsAdmin(!!data);
     };
     checkAdmin();
+
+    const fetchCategories = async () => {
+      const { data, error } = await supabase.from("categories").select("*").order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return;
+      }
+      if (mounted) setCategories(data || []);
+    };
+    fetchCategories();
+
     return () => {
       mounted = false;
     };
   }, [user]);
 
+  const navItems = [
+    { label: "TRANG CHỦ", href: "/" },
+    {
+      label: "SẢN PHẨM",
+      href: "/collections/all",
+      children: categories.map((cat) => ({
+        label: cat.name,
+        href: `/collections/${cat.slug}`,
+      })),
+    },
+    { label: "BLOG", href: "/blog" },
+    { label: "GIỚI THIỆU", href: "/gioi-thieu" },
+  ];
+
   return (
-    <header className="w-full bg-background sticky top-0 z-50 shadow-sm">
+    <header className="w-full" style={{ backgroundColor: config.primary_color }}>
       <div className="container mx-auto">
         <div className="flex items-center justify-between py-3 gap-4">
           <a href="/" className="flex-shrink-0">
-            <img src={logo} alt="Phúc Vinh Solar" className="h-16 md:h-16" />
+            <img src={config.logo_url || logo} alt={config.brand_name} className="h-16 md:h-16" />
           </a>
 
           <div className="hidden md:flex flex-1 max-w-xl relative">
@@ -66,8 +76,8 @@ const Header = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pr-12 border-border rounded-md"
             />
-            <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none bg-primary hover:bg-primary/90">
-              <Search className="h-4 w-4 text-primary-foreground" />
+            <Button size="icon" className="absolute right-0 top-0 h-full rounded-l-none" style={{ backgroundColor: config.secondary_color }}>
+              <Search className="h-4 w-4" style={{ color: config.accent_color }} />
             </Button>
           </div>
 

@@ -8,17 +8,28 @@ const Footer = () => {
   const { config } = useSiteConfig();
 
   return (
-    <footer className="bg-foreground text-background">
-      <div className="border-b border-muted-foreground/20">
+    <footer className="text-background" style={{ backgroundColor: config.primary_color, color: config.accent_color }}>
+      <div className="border-b" style={{ borderColor: config.secondary_color }}>
         <div className="container mx-auto py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
               <h3 className="font-bold text-lg">Đăng ký nhận thông tin</h3>
-              <p className="text-sm text-muted-foreground">Nhận tin tức và ưu đãi mới nhất từ {config.brand_name || "Phúc Vinh Solar"}</p>
+              <p className="text-sm" style={{ color: config.accent_color }}>
+                Nhận tin tức và ưu đãi mới nhất từ {config.brand_name || "Phúc Vinh Solar"}
+              </p>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <Input placeholder="Nhập email của bạn" className="bg-background/10 border-muted-foreground/30 text-background placeholder:text-muted-foreground/50 md:w-72" />
-              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6">ĐĂNG KÝ</Button>
+              <Input
+                placeholder="Nhập email của bạn"
+                className="md:w-72"
+                style={{ backgroundColor: config.accent_color, color: config.primary_color }}
+              />
+              <Button
+                className="font-bold px-6"
+                style={{ backgroundColor: config.secondary_color, color: config.accent_color }}
+              >
+                ĐĂNG KÝ
+              </Button>
             </div>
           </div>
         </div>
@@ -27,22 +38,40 @@ const Footer = () => {
       <div className="container mx-auto py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <img src={config.logo_url || logo} alt={config.brand_name || "Phúc Vinh Solar"} className="h-10 mb-4" />
-            <h4 className="font-bold text-sm mb-3">CÔNG TY TNHH {(config.brand_name || "PHÚC VINH SOLAR").toUpperCase()}</h4>
-            <div className="space-y-2 text-sm text-background/70">
+            <img
+              src={config.logo_url || logo}
+              alt={config.brand_name || "Phúc Vinh Solar"}
+              className="h-10 mb-4"
+            />
+            <h4 className="font-bold text-sm mb-3">
+              CÔNG TY TNHH {(config.brand_name || "PHÚC VINH SOLAR").toUpperCase()}
+            </h4>
+            <div className="space-y-2 text-sm" style={{ color: config.accent_color }}>
               {config.address && (
                 <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: config.secondary_color }} />
                   <span>{config.address}</span>
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 flex-shrink-0 text-primary" />
-                <a href={`tel:${config.phone || "0866121617"}`} className="hover:text-primary transition-colors">{config.phone || "0866121617"}</a>
+                <Phone className="h-4 w-4 flex-shrink-0" style={{ color: config.secondary_color }} />
+                <a
+                  href={`tel:${config.phone || "0866121617"}`}
+                  className="hover:underline"
+                  style={{ color: config.accent_color }}
+                >
+                  {config.phone || "0866121617"}
+                </a>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 flex-shrink-0 text-primary" />
-                <a href={`mailto:${config.email || "info@phucvinhsolar.vn"}`} className="hover:text-primary transition-colors">{config.email || "info@phucvinhsolar.vn"}</a>
+                <Mail className="h-4 w-4 flex-shrink-0" style={{ color: config.secondary_color }} />
+                <a
+                  href={`mailto:${config.email || "info@phucvinhsolar.vn"}`}
+                  className="hover:underline"
+                  style={{ color: config.accent_color }}
+                >
+                  {config.email || "info@phucvinhsolar.vn"}
+                </a>
               </div>
             </div>
           </div>
@@ -71,12 +100,24 @@ const Footer = () => {
           <div>
             <h4 className="font-bold text-sm mb-4">KẾT NỐI VỚI CHÚNG TÔI</h4>
             <div className="flex gap-3 mb-4">
-              <a href="https://facebook.com" className="h-9 w-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a href="https://youtube.com" className="h-9 w-9 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors">
-                <Youtube className="h-4 w-4" />
-              </a>
+              {config.facebook_url && (
+                <a
+                  href={config.facebook_url}
+                  className="h-9 w-9 rounded-full flex items-center justify-center hover:opacity-80"
+                  style={{ backgroundColor: config.accent_color }}
+                >
+                  <Facebook className="h-4 w-4" style={{ color: config.primary_color }} />
+                </a>
+              )}
+              {config.youtube_url && (
+                <a
+                  href={config.youtube_url}
+                  className="h-9 w-9 rounded-full flex items-center justify-center hover:opacity-80"
+                  style={{ backgroundColor: config.accent_color }}
+                >
+                  <Youtube className="h-4 w-4" style={{ color: config.primary_color }} />
+                </a>
+              )}
             </div>
             <h4 className="font-bold text-sm mb-3">PHƯƠNG THỨC THANH TOÁN</h4>
             <div className="flex gap-2">
@@ -88,9 +129,11 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="border-t border-muted-foreground/20">
+      <div className="border-t" style={{ borderColor: config.secondary_color }}>
         <div className="container mx-auto py-4">
-          <p className="text-center text-xs text-background/50">{config.footer_text || "© 2026 Phúc Vinh Solar. All rights reserved."}</p>
+          <p className="text-center text-xs" style={{ color: config.accent_color }}>
+            {config.footer_text || "© 2026 Phúc Vinh Solar. All rights reserved."}
+          </p>
         </div>
       </div>
     </footer>
