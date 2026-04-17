@@ -33,6 +33,8 @@ type SupabaseMessage = {
 // Floating Chat Icon Component (interactive)
 const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => {
   const [hover, setHover] = useState(false);
+  const { config } = useSiteConfig(); // Import dynamic config
+
   return (
     <div
       onClick={onClick}
@@ -49,8 +51,8 @@ const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => {
         width: '56px',
         height: '56px',
         borderRadius: '50%',
-        backgroundColor: '#196110',
-        color: 'white',
+        backgroundColor: config.primary_color, // Dynamic color
+        color: config.primary_foreground_color, // Dynamic color
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -68,6 +70,8 @@ const FloatingChatIcon = ({ onClick }: { onClick: () => void }) => {
 
 const ZaloFloatingButton = ({ href }: { href: string }) => {
   const [hover, setHover] = useState(false);
+  const { config } = useSiteConfig(); // Import dynamic config
+
   return (
     <a
       href={href}
@@ -83,11 +87,11 @@ const ZaloFloatingButton = ({ href }: { href: string }) => {
         width: '56px',
         height: '56px',
         borderRadius: '50%',
-        backgroundColor: 'white',
+        backgroundColor: config.secondary_color, // Dynamic color
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        boxShadow: hover ? '0 12px 30px rgba(16,128,255,0.28)' : '0 6px 18px rgba(16,128,255,0.18)',
+        boxShadow: hover ? `0 12px 30px rgba(16,128,255,0.28)` : `0 6px 18px rgba(16,128,255,0.18)`,
         transform: hover ? 'translateY(-3px) scale(1.04)' : 'translateY(0) scale(1)',
         transition: 'transform 160ms ease, box-shadow 160ms ease',
         textDecoration: 'none',

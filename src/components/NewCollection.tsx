@@ -3,20 +3,39 @@ import ProductCard from "./ProductCard";
 import { useProducts } from "@/hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 
 const NewCollection = () => {
   const [activeTab, setActiveTab] = useState("all");
   const { data: products, isLoading } = useProducts(activeTab);
   const [categories, setCategories] = useState([{ id: "all", name: "TẤT CẢ" }]);
+  const { config } = useSiteConfig(); // Import dynamic config
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase.from("categories").select("id, name, slug").order("created_at", { ascending: false });
-      if (error) {
-        console.error("Error fetching categories:", error);
-        return;
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("id, name, slug")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching categories:", error);
+          alert("Không thể tải danh mục. Vui lòng thử lại sau.");
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          console.warn("No categories found in the database.");
+          alert("Không có danh mục nào được tìm thấy.");
+          return;
+        }
+
+        setCategories([{ id: "all", name: "TẤT CẢ" }, ...data]);
+      } catch (err) {
+        console.error("Unexpected error while fetching categories:", err);
+        alert("Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
       }
-      setCategories([{ id: "all", name: "TẤT CẢ" }, ...(data || [])]);
     };
 
     fetchCategories();
@@ -33,8 +52,8 @@ const NewCollection = () => {
             onClick={() => setActiveTab(cat.id)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === cat.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                ? `bg-[${config.primary_color}] text-[${config.primary_foreground_color}]`
+                : `bg-[${config.muted_color}] text-[${config.muted_foreground_color}] hover:bg-[${config.muted_color}/80]`
             }`}
           >
             {cat.name}
