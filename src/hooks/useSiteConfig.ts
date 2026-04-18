@@ -73,6 +73,9 @@ const DEFAULT_CONFIG: SiteConfig = {
   footer_guide_title: "HƯỚNG DẪN",
   footer_connect_title: "KẾT NỐI VỚI CHÚNG TÔI",
   footer_payment_title: "PHƯƠNG THỨC THANH TOÁN",
+  site_title: "Phúc Vinh Solar - Đèn Năng Lượng Mặt Trời",
+  site_description: "Phúc Vinh Solar - Giải pháp đèn năng lượng mặt trời chất lượng cao cho gia đình và doanh nghiệp.",
+  favicon_url: "/logo.png",
 
   // Auth pages
   login_title: "Đăng Nhập",

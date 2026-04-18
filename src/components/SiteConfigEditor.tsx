@@ -30,6 +30,9 @@ const CONFIG_SECTIONS = [
     icon: Type,
     fields: [
       { key: "brand_name", label: "Tên thương hiệu", type: "text" },
+      { key: "site_title", label: "Tiêu đề trang", type: "text" },
+      { key: "site_description", label: "Mô tả trang", type: "text" },
+      { key: "favicon_url", label: "Favicon URL", type: "text" },
       { key: "logo_url", label: "Logo (URL hoặc upload)", type: "image" },
     ],
   },

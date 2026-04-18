@@ -22,8 +22,7 @@ import About from "./pages/About.tsx";
 import PageDetail from "./pages/PageDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Chatbot from "./components/Chatbot";
-import SiteThemeSync from "./components/SiteThemeSync";
-
+import SiteThemeSync from "./components/SiteThemeSync";import SiteMetaSync from "@/components/SiteMetaSync";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -32,6 +31,7 @@ const App = () => (
       <AuthProvider>
         <CartProvider>
           <SiteThemeSync />
+          <SiteMetaSync />
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
