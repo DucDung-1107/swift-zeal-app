@@ -5,36 +5,42 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 
+type CategoryItem = {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+};
+
 const NewCollection = () => {
   const [activeTab, setActiveTab] = useState("all");
   const { data: products, isLoading } = useProducts(activeTab);
-  const [categories, setCategories] = useState([{ id: "all", name: "TẤT CẢ" }]);
-  const { config } = useSiteConfig(); // Import dynamic config
+  const [categories, setCategories] = useState<CategoryItem[]>([
+    { id: "all", name: "TẤT CẢ", slug: "all", category: "all" },
+  ]);
+  const { config } = useSiteConfig();
+  const title = config.new_collection_title || "BỘ SƯU TẬP MỚI";
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const { data, error } = await supabase
           .from("categories")
-          .select("id, name, slug")
+          .select("id, name, slug, category")
           .order("created_at", { ascending: false });
 
         if (error) {
           console.error("Error fetching categories:", error);
-          alert("Không thể tải danh mục. Vui lòng thử lại sau.");
           return;
         }
 
         if (!data || data.length === 0) {
-          console.warn("No categories found in the database.");
-          alert("Không có danh mục nào được tìm thấy.");
           return;
         }
 
-        setCategories([{ id: "all", name: "TẤT CẢ" }, ...data]);
+        setCategories([{ id: "all", name: "TẤT CẢ", slug: "all", category: "all" }, ...(data as CategoryItem[])]);
       } catch (err) {
         console.error("Unexpected error while fetching categories:", err);
-        alert("Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.");
       }
     };
 
@@ -43,18 +49,25 @@ const NewCollection = () => {
 
   return (
     <section className="container mx-auto py-8">
-      <h2 className="text-2xl font-bold text-foreground mb-6">BỘ SƯU TẬP MỚI</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">{title}</h2>
 
       <div className="flex flex-wrap gap-2 mb-6">
         {categories.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setActiveTab(cat.id)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === cat.id
-                ? `bg-[${config.primary_color}] text-[${config.primary_foreground_color}]`
-                : `bg-[${config.muted_color}] text-[${config.muted_foreground_color}] hover:bg-[${config.muted_color}/80]`
-            }`}
+            onClick={() => setActiveTab(cat.category)}
+            className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            style={
+              activeTab === cat.category
+                ? {
+                    backgroundColor: config.primary_color,
+                    color: config.primary_foreground_color,
+                  }
+                : {
+                    backgroundColor: config.muted_color,
+                    color: config.muted_foreground_color,
+                  }
+            }
           >
             {cat.name}
           </button>

@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Package, ShoppingBag, Plus, Pencil, Trash2, LogOut, Home, Truck, FileText, Shield, RefreshCw, User2, FileEdit, Link, Loader2, MessageSquare, Settings } from "lucide-react";
 import type { DbProduct } from "@/hooks/useProducts";
 import type { Tables } from "@/integrations/supabase/types";
-import { blogPosts as staticBlogPosts } from "@/data/products";
 
 type Order = Tables<"orders">;
 
@@ -61,12 +60,6 @@ const calcCurrentPriceFromDb = (p: DbProduct) => {
   return Math.round(base * (1 - discount / 100));
 };
 
-const fallbackServices = [
-  { id: "default-iso", title: "CHỨNG NHẬN ISO QUỐC TẾ", icon_key: "shield", sort_order: 1 },
-  { id: "default-ship", title: "VẬN CHUYỂN TOÀN QUỐC", icon_key: "truck", sort_order: 2 },
-  { id: "default-warranty", title: "BẢO HÀNH ĐỔI MỚI 2 NĂM", icon_key: "refresh", sort_order: 3 },
-];
-
 const Admin = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -79,6 +72,14 @@ const Admin = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [supportMessages, setSupportMessages] = useState<any[]>([]);
   const [supportReply, setSupportReply] = useState("");
+
+  type CategoryRow = {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+  };
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
 
 
   // Products state
@@ -115,7 +116,7 @@ const Admin = () => {
         if (error) {
           // Hướng dẫn admin chạy migration nếu bucket chưa tồn tại
           if (error.message?.toLowerCase().includes('not found') || error.message?.toLowerCase().includes('bucket')) {
-            throw new Error('Bucket "product-images" chưa tồn tại. Vui lòng chạy migration 20260329120000 trong Supabase SQL Editor.');
+            throw new Error('Bucket "product-images" chưa tồn tại. Vui lòng chạy migration 20260329120000_fix_rls_role_update_and_storage.sql trong Supabase SQL Editor.');
           }
           throw error;
         }
@@ -224,7 +225,10 @@ const Admin = () => {
 
   useEffect(() => {
     if (!isAdmin) return;
-    if (tab === "products") fetchProducts();
+    if (tab === "products") {
+      fetchProducts();
+      refetchCategories();
+    }
     else if (tab === "orders") fetchOrders();
     else if (tab === "users") fetchUsers();
     else if (tab === "services") fetchServices();
@@ -321,14 +325,8 @@ const Admin = () => {
       if (error) throw error;
       setServices((data || []) as ServiceRow[]);
     } catch (e: any) {
-      const message = String(e?.message ?? "");
-      const isMissingTable = e?.code === "42P01" || message.toLowerCase().includes("does not exist") || message.toLowerCase().includes("relation");
-      if (isMissingTable) {
-        setServices(fallbackServices as any);
-        return;
-      }
-      toast({ title: "Lỗi tải dịch vụ", description: message || "Vui lòng thử lại.", variant: "destructive" });
-      setServices(fallbackServices as any);
+      toast({ title: "Lỗi tải dịch vụ", description: e?.message ?? "Vui lòng thử lại.", variant: "destructive" });
+      setServices([]);
     } finally {
       setLoadingServices(false);
     }
@@ -341,36 +339,8 @@ const Admin = () => {
       if (error) throw error;
       setPosts((data || []) as BlogPostRow[]);
     } catch (e: any) {
-      const message = String(e?.message ?? "");
-      const isMissingTable = e?.code === "42P01" || message.toLowerCase().includes("does not exist") || message.toLowerCase().includes("relation");
-      if (isMissingTable) {
-        setPosts(
-          staticBlogPosts.map((p) => ({
-            id: p.id,
-            title: p.title,
-            slug: p.slug,
-            excerpt: p.excerpt,
-            image_url: p.image,
-            created_at: undefined,
-            date: p.date,
-            content: "",
-          })),
-        );
-        return;
-      }
-      toast({ title: "Lỗi tải bài đăng", description: message || "Vui lòng thử lại.", variant: "destructive" });
-      setPosts(
-        staticBlogPosts.map((p) => ({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          excerpt: p.excerpt,
-          image_url: p.image,
-          created_at: undefined,
-          date: p.date,
-          content: "",
-        })),
-      );
+      toast({ title: "Lỗi tải bài đăng", description: e?.message ?? "Vui lòng thử lại.", variant: "destructive" });
+      setPosts([]);
     } finally {
       setLoadingPosts(false);
     }
@@ -385,20 +355,9 @@ const Admin = () => {
         setLatestPosts(data as BlogPostRow[]);
         return;
       }
+      setLatestPosts([]);
     } catch {
-      // fallback demo
-      setLatestPosts(
-        staticBlogPosts.slice(0, 3).map((p) => ({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          excerpt: p.excerpt,
-          image_url: p.image,
-          created_at: undefined,
-          date: p.date,
-          content: "",
-        })),
-      );
+      setLatestPosts([]);
     }
   };
 
@@ -855,9 +814,9 @@ const Admin = () => {
   const refetchCategories = async () => {
     try {
       const { data } = await supabase.from("categories").select("*").order("name", { ascending: true });
-      setCategories(data || []);
-    } catch (error) {
-      toast({ title: "Error fetching categories", description: error.message, variant: "destructive" });
+      setCategories((data || []) as CategoryRow[]);
+    } catch (error: any) {
+      toast({ title: "Lỗi tải danh mục", description: error?.message || "Vui lòng thử lại.", variant: "destructive" });
     }
   };
 
@@ -910,6 +869,9 @@ const Admin = () => {
             </button>
             <button onClick={() => setTab("posts")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "posts" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <FileText className="h-5 w-5" />Bài đăng
+            </button>
+            <button onClick={() => setTab("pages")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "pages" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
+              <FileEdit className="h-5 w-5" />Trang
             </button>
             <button onClick={() => setTab("config")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "config" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <Settings className="h-5 w-5" />Cấu hình

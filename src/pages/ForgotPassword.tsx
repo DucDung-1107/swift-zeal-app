@@ -4,6 +4,7 @@ import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Mail, ArrowLeft } from "lucide-react";
@@ -13,6 +14,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
+  const { config } = useSiteConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +41,12 @@ const ForgotPassword = () => {
         <div className="container mx-auto py-12 px-4">
           <div className="max-w-md mx-auto bg-card rounded-lg border p-8 text-center">
             <Mail className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Kiểm tra email</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{config.forgot_check_email_title || "Kiểm tra email"}</h1>
             <p className="text-muted-foreground">
-              Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới <strong>{email}</strong>. Vui lòng kiểm tra hộp thư.
+              {config.forgot_check_email_description || "Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới"} <strong>{email}</strong>. Vui lòng kiểm tra hộp thư.
             </p>
             <Link to="/login" className="inline-block mt-6 text-primary hover:underline font-medium">
-              Quay lại đăng nhập
+              {config.forgot_back_to_login_text || "Quay lại đăng nhập"}
             </Link>
           </div>
         </div>
@@ -58,21 +60,21 @@ const ForgotPassword = () => {
       <Header />
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-md mx-auto bg-card rounded-lg border p-8">
-          <h1 className="text-2xl font-bold text-foreground text-center mb-2">Quên mật khẩu</h1>
+          <h1 className="text-2xl font-bold text-foreground text-center mb-2">{config.forgot_title || "Quên mật khẩu"}</h1>
           <p className="text-center text-muted-foreground mb-6">
-            Nhập email của bạn, chúng tôi sẽ gửi link đặt lại mật khẩu.
+            {config.forgot_description || "Nhập email của bạn, chúng tôi sẽ gửi link đặt lại mật khẩu."}
           </p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+              <Input type="email" placeholder={config.forgot_email_placeholder || "Email"} value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Đang gửi..." : "Gửi email đặt lại mật khẩu"}
+              {loading ? (config.forgot_loading_text || "Đang gửi...") : (config.forgot_submit_text || "Gửi email đặt lại mật khẩu")}
             </Button>
           </form>
           <Link to="/login" className="flex items-center justify-center gap-1 mt-4 text-sm text-muted-foreground hover:text-primary">
-            <ArrowLeft className="h-4 w-4" /> Quay lại đăng nhập
+            <ArrowLeft className="h-4 w-4" /> {config.forgot_back_to_login_text || "Quay lại đăng nhập"}
           </Link>
         </div>
       </div>

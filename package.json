@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "supabase:migrate:sh": "bash scripts/run-supabase-migrations.sh",
-    "supabase:migrate:ps1": "pwsh -File scripts\run-supabase-migrations.ps1",
+    "supabase:migrate:ps1": "powershell -ExecutionPolicy Bypass -File scripts\\run-supabase-migrations.ps1",
     "supabase:migrate": "npm run supabase:migrate:sh",
     "test": "vitest run",
     "test:watch": "vitest"

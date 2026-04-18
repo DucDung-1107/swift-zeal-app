@@ -7,6 +7,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FileText } from "lucide-react";
@@ -19,6 +20,7 @@ const Checkout = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { config } = useSiteConfig();
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -36,8 +38,8 @@ const Checkout = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto py-20 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Giỏ hàng trống</h1>
-          <a href="/" className="text-primary hover:underline mt-4 inline-block">Tiếp tục mua sắm</a>
+          <h1 className="text-2xl font-bold text-foreground">{config.checkout_empty_cart_title || "Giỏ hàng trống"}</h1>
+          <a href="/" className="text-primary hover:underline mt-4 inline-block">{config.checkout_continue_shopping_text || "Tiếp tục mua sắm"}</a>
         </div>
         <Footer />
       </div>
@@ -48,7 +50,7 @@ const Checkout = () => {
     e.preventDefault();
 
     if (!user) {
-      toast({ title: "Vui lòng đăng nhập để đặt hàng", variant: "destructive" });
+      toast({ title: config.checkout_login_required_text || "Vui lòng đăng nhập để đặt hàng", variant: "destructive" });
       navigate("/login");
       return;
     }
@@ -70,7 +72,7 @@ const Checkout = () => {
     }).select().single();
 
     if (orderError || !order) {
-      toast({ title: "Đặt hàng thất bại", description: orderError?.message, variant: "destructive" });
+      toast({ title: config.checkout_order_failed_text || "Đặt hàng thất bại", description: orderError?.message, variant: "destructive" });
       setLoading(false);
       return;
     }
@@ -85,14 +87,14 @@ const Checkout = () => {
     const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
 
     if (itemsError) {
-      toast({ title: "Lỗi khi lưu chi tiết đơn hàng", description: itemsError.message, variant: "destructive" });
+      toast({ title: config.checkout_items_failed_text || "Lỗi khi lưu chi tiết đơn hàng", description: itemsError.message, variant: "destructive" });
       setLoading(false);
       return;
     }
 
     clearCart();
     setLoading(false);
-    toast({ title: "Đặt hàng thành công!", description: "Chúng tôi sẽ liên hệ xác nhận đơn hàng sớm nhất." });
+    toast({ title: config.checkout_success_title || "Đặt hàng thành công!", description: config.checkout_success_description || "Chúng tôi sẽ liên hệ xác nhận đơn hàng sớm nhất." });
     navigate("/");
   };
 
@@ -100,17 +102,17 @@ const Checkout = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto py-8 px-4">
-        <h1 className="text-2xl font-bold text-foreground mb-6">Thanh Toán</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-6">{config.checkout_title || "Thanh Toán"}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form */}
           <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
             <div className="bg-card rounded-lg border p-6">
-              <h2 className="text-lg font-bold text-foreground mb-4">Thông tin giao hàng</h2>
+              <h2 className="text-lg font-bold text-foreground mb-4">{config.checkout_shipping_title || "Thông tin giao hàng"}</h2>
               <div className="space-y-4">
-                <Input placeholder="Họ và tên *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                <Input placeholder="Số điện thoại *" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-                <Input placeholder="Địa chỉ giao hàng *" value={address} onChange={(e) => setAddress(e.target.value)} required />
-                <Textarea placeholder="Ghi chú đơn hàng (tùy chọn)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                <Input placeholder={config.checkout_fullname_placeholder || "Họ và tên *"} value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <Input placeholder={config.checkout_phone_placeholder || "Số điện thoại *"} value={phone} onChange={(e) => setPhone(e.target.value)} required />
+                <Input placeholder={config.checkout_address_placeholder || "Địa chỉ giao hàng *"} value={address} onChange={(e) => setAddress(e.target.value)} required />
+                <Textarea placeholder={config.checkout_notes_placeholder || "Ghi chú đơn hàng (tùy chọn)"} value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </div>
 
@@ -119,26 +121,26 @@ const Checkout = () => {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={invoiceRequested} onChange={(e) => setInvoiceRequested(e.target.checked)} className="h-4 w-4 rounded border-input accent-primary" />
                 <FileText className="h-5 w-5 text-primary" />
-                <span className="font-medium text-foreground">Yêu cầu xuất hóa đơn VAT</span>
+                <span className="font-medium text-foreground">{config.checkout_invoice_toggle_text || "Yêu cầu xuất hóa đơn VAT"}</span>
               </label>
               {invoiceRequested && (
                 <div className="mt-4 space-y-4 pl-7">
-                  <Input placeholder="Tên công ty *" value={invoiceCompany} onChange={(e) => setInvoiceCompany(e.target.value)} required={invoiceRequested} />
-                  <Input placeholder="Mã số thuế *" value={invoiceTaxCode} onChange={(e) => setInvoiceTaxCode(e.target.value)} required={invoiceRequested} />
-                  <Input placeholder="Địa chỉ công ty *" value={invoiceAddress} onChange={(e) => setInvoiceAddress(e.target.value)} required={invoiceRequested} />
-                  <Input placeholder="Email nhận hóa đơn *" type="email" value={invoiceEmail} onChange={(e) => setInvoiceEmail(e.target.value)} required={invoiceRequested} />
+                  <Input placeholder={config.checkout_invoice_company_placeholder || "Tên công ty *"} value={invoiceCompany} onChange={(e) => setInvoiceCompany(e.target.value)} required={invoiceRequested} />
+                  <Input placeholder={config.checkout_invoice_tax_code_placeholder || "Mã số thuế *"} value={invoiceTaxCode} onChange={(e) => setInvoiceTaxCode(e.target.value)} required={invoiceRequested} />
+                  <Input placeholder={config.checkout_invoice_address_placeholder || "Địa chỉ công ty *"} value={invoiceAddress} onChange={(e) => setInvoiceAddress(e.target.value)} required={invoiceRequested} />
+                  <Input placeholder={config.checkout_invoice_email_placeholder || "Email nhận hóa đơn *"} type="email" value={invoiceEmail} onChange={(e) => setInvoiceEmail(e.target.value)} required={invoiceRequested} />
                 </div>
               )}
             </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? "Đang xử lý..." : "Xác nhận đặt hàng"}
+              {loading ? (config.checkout_loading_text || "Đang xử lý...") : (config.checkout_submit_text || "Xác nhận đặt hàng")}
             </Button>
           </form>
 
           {/* Order summary */}
           <div className="bg-card rounded-lg border p-6 h-fit sticky top-20">
-            <h2 className="text-lg font-bold text-foreground mb-4">Đơn hàng ({items.length} sản phẩm)</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">{config.checkout_summary_title || "Đơn hàng"} ({items.length} sản phẩm)</h2>
             <div className="space-y-3">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3">
@@ -153,15 +155,15 @@ const Checkout = () => {
             </div>
             <div className="border-t mt-4 pt-4">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Tạm tính</span>
+                <span className="text-muted-foreground">{config.checkout_summary_subtotal_text || "Tạm tính"}</span>
                 <span>{formatPrice(totalPrice)}</span>
               </div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Phí vận chuyển</span>
-                <span className="text-primary font-medium">Miễn phí</span>
+                <span className="text-muted-foreground">{config.checkout_summary_shipping_text || "Phí vận chuyển"}</span>
+                <span className="text-primary font-medium">{config.checkout_summary_shipping_free_text || "Miễn phí"}</span>
               </div>
               <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                <span>Tổng cộng</span>
+                <span>{config.checkout_summary_total_text || "Tổng cộng"}</span>
                 <span className="text-primary">{formatPrice(totalPrice)}</span>
               </div>
             </div>

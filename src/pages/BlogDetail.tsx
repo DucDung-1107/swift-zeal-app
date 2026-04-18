@@ -4,11 +4,13 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBlogPost } from "@/hooks/useBlogPost";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { resolveImageSrc } from "@/lib/image";
 
 const BlogDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { config } = useSiteConfig();
 
   const { data: post, isLoading } = useBlogPost(slug || "");
 
@@ -34,9 +36,9 @@ const BlogDetail = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <main className="container mx-auto py-16 px-4 text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Bài viết không tồn tại</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">{config.blog_detail_not_found_title || "Bài viết không tồn tại"}</h1>
           <Button variant="outline" onClick={() => navigate("/blog")}>
-            Quay lại trang Blog
+            {config.blog_detail_back_to_blog_text || "Quay lại trang Blog"}
           </Button>
         </main>
         <Footer />
@@ -49,21 +51,21 @@ const BlogDetail = () => {
       <Header />
       <main className="container mx-auto py-10 px-4">
         <button onClick={() => navigate(-1)} className="text-sm text-muted-foreground hover:text-primary mb-6">
-          Quay lại
+          {config.blog_detail_back_text || "Quay lại"}
         </button>
 
         <article className="max-w-3xl mx-auto">
           <img src={resolveImageSrc(post.image)} alt={post.title} className="w-full h-[320px] object-cover rounded-lg border" />
           <div className="mt-6 flex items-center justify-between gap-4">
             <span className="text-xs text-muted-foreground">{post.date}</span>
-            <span className="text-xs text-primary font-medium">Phúc Vinh Solar</span>
+            <span className="text-xs text-primary font-medium">{config.blog_detail_author_name || "Phúc Vinh Solar"}</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mt-3 leading-tight">{post.title}</h1>
           <p className="text-sm text-muted-foreground mt-4">{post.excerpt}</p>
 
           <div className="mt-8 bg-card border rounded-lg p-6">
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              Nội dung chi tiết đang được cập nhật. Bạn có thể liên hệ để nhận tư vấn thêm ngay hôm nay.
+              {config.blog_detail_content_fallback || "Nội dung chi tiết đang được cập nhật. Bạn có thể liên hệ để nhận tư vấn thêm ngay hôm nay."}
             </p>
           </div>
         </article>

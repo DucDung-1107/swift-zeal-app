@@ -1,14 +1,18 @@
 import { useProducts } from "@/hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveImageSrc } from "@/lib/image";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 
 const TrendingProducts = () => {
   const { data: products, isLoading } = useProducts();
+  const { config } = useSiteConfig();
+  const title = config.trending_title || "Xu hướng tìm kiếm";
+  const cta = config.trending_cta_text || "Xem ngay";
 
   if (isLoading) {
     return (
       <section className="container mx-auto py-8">
-        <h2 className="text-lg font-medium text-muted-foreground mb-6">Xu hướng tìm kiếm</h2>
+        <h2 className="text-lg font-medium text-muted-foreground mb-6">{title}</h2>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <Skeleton key={i} className="aspect-square rounded-lg" />
@@ -24,9 +28,9 @@ const TrendingProducts = () => {
   return (
     <section className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-medium text-muted-foreground">Xu hướng tìm kiếm</h2>
+        <h2 className="text-lg font-medium text-muted-foreground">{title}</h2>
         <a href="/collections/all" className="text-sm text-primary hover:underline font-medium">
-          Xem ngay
+          {cta}
         </a>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">

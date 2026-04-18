@@ -1,16 +1,21 @@
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveImageSrc } from "@/lib/image";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 
 const BlogSection = () => {
   const { data: posts, isLoading } = useBlogPosts();
+  const { config } = useSiteConfig();
+  const sectionTitle = config.blog_section_title || "Bài Viết Mới Nhất";
+  const sectionCta = config.blog_section_cta_text || "Xem tất cả";
+  const itemCta = config.blog_item_cta_text || "Xem thêm";
 
   return (
     <section className="container mx-auto py-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-foreground">Bài Viết Mới Nhất</h2>
+        <h2 className="text-2xl font-bold text-foreground">{sectionTitle}</h2>
         <a href="/blog" className="text-sm text-primary hover:underline font-medium">
-          Xem tất cả
+          {sectionCta}
         </a>
       </div>
       {isLoading ? (
@@ -41,7 +46,7 @@ const BlogSection = () => {
                 <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{post.excerpt}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xs text-muted-foreground">{post.date}</span>
-                  <span className="text-xs text-primary font-medium">Xem thêm</span>
+                  <span className="text-xs text-primary font-medium">{itemCta}</span>
                 </div>
               </div>
             </a>

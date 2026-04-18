@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
@@ -17,6 +18,7 @@ const ResetPassword = () => {
   const [isRecovery, setIsRecovery] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { config } = useSiteConfig();
 
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -60,9 +62,9 @@ const ResetPassword = () => {
         <Header />
         <div className="container mx-auto py-12 px-4">
           <div className="max-w-md mx-auto bg-card rounded-lg border p-8 text-center">
-            <h1 className="text-xl font-bold text-foreground mb-2">Liên kết không hợp lệ</h1>
-            <p className="text-muted-foreground">Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.</p>
-            <a href="/forgot-password" className="inline-block mt-4 text-primary hover:underline">Yêu cầu lại</a>
+            <h1 className="text-xl font-bold text-foreground mb-2">{config.reset_invalid_title || "Liên kết không hợp lệ"}</h1>
+            <p className="text-muted-foreground">{config.reset_invalid_description || "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn."}</p>
+            <a href="/forgot-password" className="inline-block mt-4 text-primary hover:underline">{config.reset_request_again_text || "Yêu cầu lại"}</a>
           </div>
         </div>
         <Footer />
@@ -77,8 +79,8 @@ const ResetPassword = () => {
         <div className="container mx-auto py-12 px-4">
           <div className="max-w-md mx-auto bg-card rounded-lg border p-8 text-center">
             <CheckCircle className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-foreground mb-2">Đặt lại thành công!</h1>
-            <p className="text-muted-foreground">Mật khẩu đã được cập nhật. Đang chuyển tới trang đăng nhập...</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{config.reset_success_title || "Đặt lại thành công!"}</h1>
+            <p className="text-muted-foreground">{config.reset_success_description || "Mật khẩu đã được cập nhật. Đang chuyển tới trang đăng nhập..."}</p>
           </div>
         </div>
         <Footer />
@@ -91,13 +93,13 @@ const ResetPassword = () => {
       <Header />
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-md mx-auto bg-card rounded-lg border p-8">
-          <h1 className="text-2xl font-bold text-foreground text-center mb-6">Đặt lại mật khẩu</h1>
+          <h1 className="text-2xl font-bold text-foreground text-center mb-6">{config.reset_title || "Đặt lại mật khẩu"}</h1>
           <form onSubmit={handleReset} className="space-y-4">
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="Mật khẩu mới (ít nhất 6 ký tự)"
+                placeholder={config.reset_password_placeholder || "Mật khẩu mới (ít nhất 6 ký tự)"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10 pr-10"
@@ -111,7 +113,7 @@ const ResetPassword = () => {
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="Xác nhận mật khẩu mới"
+                placeholder={config.reset_confirm_password_placeholder || "Xác nhận mật khẩu mới"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pl-10"
@@ -119,7 +121,7 @@ const ResetPassword = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
+              {loading ? (config.reset_loading_text || "Đang xử lý...") : (config.reset_submit_text || "Đặt lại mật khẩu")}
             </Button>
           </form>
         </div>
