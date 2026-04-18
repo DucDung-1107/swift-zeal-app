@@ -66,7 +66,7 @@ const Admin = () => {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages" | "support" | "config">("products");
+  const [tab, setTab] = useState<"products" | "orders" | "users" | "services" | "posts" | "pages" | "support" | "config" | "categories">("products");
   const [isSupportPopupOpen, setIsSupportPopupOpen] = useState(false);
   const [conversations, setConversations] = useState<any[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
@@ -80,7 +80,9 @@ const Admin = () => {
     category: string;
   };
   const [categories, setCategories] = useState<CategoryRow[]>([]);
-
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryRow | null>(null);
+  const [categoryForm, setCategoryForm] = useState({ id: "", name: "", slug: "", category: "" });
 
   // Products state
   const [products, setProducts] = useState<DbProduct[]>([]);
@@ -235,6 +237,7 @@ const Admin = () => {
     else if (tab === "posts") fetchPosts();
     else if (tab === "pages") fetchPages();
     else if (tab === "support") loadSupportConversations();
+    else if (tab === "categories") refetchCategories();
   }, [isAdmin, tab]);
 
   const fetchProducts = async () => {
@@ -425,7 +428,7 @@ const Admin = () => {
         category: categoryToUse,
         price: v.price,
         discount: zealsunBaseData.discount || null,
-        brand: "PV SOLAR",
+        brand: "Toan Tam",
         image_url: zealsunBaseData.image_url || null,
         in_stock: v.in_stock,
         has_gift: false,
@@ -532,7 +535,7 @@ const Admin = () => {
         category: categoryToSave,
         price: basePrice,
         discount: parsedDiscount,
-        brand: "PV SOLAR",
+        brand: "Toan Tam",
         image_url: imageUrl,
         in_stock: form.in_stock,
         has_gift: false,
@@ -835,11 +838,23 @@ const Admin = () => {
     try {
       const { error } = await supabase.from("categories").delete().eq("id", categoryId);
       if (error) throw error;
-      toast({ title: "Category deleted successfully" });
+      toast({ title: "Đã xóa danh mục" });
       refetchCategories(); // Refetch categories
     } catch (error) {
-      toast({ title: "Error deleting category", description: error.message, variant: "destructive" });
+      toast({ title: "Lỗi xóa danh mục", description: error.message, variant: "destructive" });
     }
+  };
+
+  const openNewCategory = () => {
+    setEditingCategory(null);
+    setCategoryForm({ id: "", name: "", slug: "", category: "" });
+    setShowCategoryForm(true);
+  };
+
+  const openEditCategory = (category: CategoryRow) => {
+    setEditingCategory(category);
+    setCategoryForm({ id: category.id, name: category.name, slug: category.slug, category: category.category });
+    setShowCategoryForm(true);
   };
 
   if (loading || checking) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
@@ -873,6 +888,9 @@ const Admin = () => {
             <button onClick={() => setTab("pages")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "pages" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <FileEdit className="h-5 w-5" />Trang
             </button>
+            <button onClick={() => setTab("categories")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "categories" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
+              <Package className="h-5 w-5" />Danh mục
+            </button>
             <button onClick={() => setTab("config")} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${tab === "config" ? "bg-primary-foreground/20" : "hover:bg-primary-foreground/10"}`}>
               <Settings className="h-5 w-5" />Cấu hình
             </button>
@@ -893,6 +911,7 @@ const Admin = () => {
             <Button variant={tab === "services" ? "default" : "outline"} size="sm" onClick={() => setTab("services")}><Truck className="h-4 w-4 mr-1" />Dịch vụ</Button>
             <Button variant={tab === "posts" ? "default" : "outline"} size="sm" onClick={() => setTab("posts")}><FileText className="h-4 w-4 mr-1" />Bài đăng</Button>
             <Button variant={tab === "pages" ? "default" : "outline"} size="sm" onClick={() => setTab("pages")}><FileEdit className="h-4 w-4 mr-1" />Trang</Button>
+            <Button variant={tab === "categories" ? "default" : "outline"} size="sm" onClick={() => setTab("categories")}><Package className="h-4 w-4 mr-1" />Danh mục</Button>
             <Button variant={tab === "config" ? "default" : "outline"} size="sm" onClick={() => setTab("config")}><Settings className="h-4 w-4 mr-1" />Cấu hình</Button>
             <a href="/" className="ml-auto"><Button variant="ghost" size="sm"><Home className="h-4 w-4" /></Button></a>
           </div>
@@ -1497,6 +1516,62 @@ const Admin = () => {
                 {posts.length === 0 && !loadingPosts && (
                   <div className="p-8 text-center text-muted-foreground">Chưa có bài đăng</div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {tab === "categories" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-foreground">Quản lý danh mục ({categories.length})</h2>
+                <Button onClick={openNewCategory}><Plus className="h-4 w-4 mr-1" />Thêm danh mục</Button>
+              </div>
+
+              {showCategoryForm && (
+                <div className="bg-card border rounded-lg p-6 mb-6">
+                  <h3 className="font-bold text-foreground mb-4">{editingCategory ? "Sửa danh mục" : "Thêm danh mục mới"}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Tên danh mục *</label>
+                      <Input className="mt-2" value={categoryForm.name} onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value, slug: slugify(e.target.value), category: slugify(e.target.value) })} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-foreground">Slug</label>
+                      <Input className="mt-2" value={categoryForm.slug} onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value })} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-foreground">Key danh mục (dùng trong product.category)</label>
+                      <Input className="mt-2" value={categoryForm.category} onChange={(e) => setCategoryForm({ ...categoryForm, category: e.target.value })} />
+                      <p className="text-xs text-muted-foreground mt-2">Key này dùng để liên kết sản phẩm với danh mục. Nếu không nhập thì sẽ lấy theo slug.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={() => saveCategory(categoryForm)}>{editingCategory ? "Cập nhật" : "Lưu"}</Button>
+                    <Button variant="outline" onClick={() => setShowCategoryForm(false)}>Hủy</Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {categories.map((cat) => (
+                  <div key={cat.id} className="bg-card border rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{cat.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Slug: {cat.slug}</p>
+                        <p className="text-xs text-muted-foreground">Key: {cat.category}</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button variant="outline" size="icon" onClick={() => openEditCategory(cat)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteCategory(cat.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
