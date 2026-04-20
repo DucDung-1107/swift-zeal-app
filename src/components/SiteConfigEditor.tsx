@@ -32,8 +32,8 @@ const CONFIG_SECTIONS = [
       { key: "brand_name", label: "Tên thương hiệu", type: "text" },
       { key: "site_title", label: "Tiêu đề trang", type: "text" },
       { key: "site_description", label: "Mô tả trang", type: "text" },
-      { key: "favicon_url", label: "Favicon (URL hoặc upload)", type: "image" },
-      { key: "logo_url", label: "Logo (URL hoặc upload)", type: "image" },
+      { key: "favicon_url", label: "Favicon (upload only)", type: "image" },
+      { key: "logo_url", label: "Logo (upload only)", type: "image" },
     ],
   },
   {
@@ -439,12 +439,6 @@ const SiteConfigEditor = () => {
                     ) : field.type === "image" ? (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Input
-                            value={draft[field.key] || ""}
-                            onChange={(e) => handleChange(field.key, e.target.value)}
-                            placeholder="URL hình ảnh hoặc upload file"
-                            className="flex-1"
-                          />
                           <Button
                             size="sm"
                             variant="outline"
@@ -452,6 +446,7 @@ const SiteConfigEditor = () => {
                             disabled={uploading === field.key}
                           >
                             {uploading === field.key ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                            <span className="ml-2">Upload hình</span>
                           </Button>
                           <Button
                             size="sm"
@@ -461,7 +456,17 @@ const SiteConfigEditor = () => {
                           >
                             {saving === field.key ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
                           </Button>
+                          {draft[field.key] && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleChange(field.key, "")}
+                            >
+                              Xóa
+                            </Button>
+                          )}
                         </div>
+                        <p className="text-xs text-muted-foreground">Không hiển thị URL trực tiếp, chỉ dùng upload để bảo mật hơn.</p>
                         {draft[field.key] && (
                           <div className="relative w-full max-w-xs rounded-md overflow-hidden border" style={{ backgroundColor: config.muted_color }}>
                             <img
