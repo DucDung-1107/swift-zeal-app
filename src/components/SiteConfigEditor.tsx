@@ -32,7 +32,7 @@ const CONFIG_SECTIONS = [
       { key: "brand_name", label: "Tên thương hiệu", type: "text" },
       { key: "site_title", label: "Tiêu đề trang", type: "text" },
       { key: "site_description", label: "Mô tả trang", type: "text" },
-      { key: "favicon_url", label: "Favicon URL", type: "text" },
+      { key: "favicon_url", label: "Favicon (URL hoặc upload)", type: "image" },
       { key: "logo_url", label: "Logo (URL hoặc upload)", type: "image" },
     ],
   },
@@ -204,13 +204,6 @@ const CONFIG_SECTIONS = [
       { key: "footer_connect_title", label: "Tiêu đề cột Kết nối", type: "text" },
       { key: "footer_payment_title", label: "Tiêu đề cột Thanh toán", type: "text" },
       { key: "footer_text", label: "Dòng cuối footer", type: "text" },
-    ],
-  },
-  {
-    title: "Danh mục sản phẩm",
-    icon: Type,
-    fields: [
-      { key: "categories", label: "Danh mục sản phẩm (JSON)", type: "textarea" },
     ],
   },
 ];

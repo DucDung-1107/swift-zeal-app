@@ -1052,9 +1052,12 @@ const Admin = () => {
                         value={form.category}
                         onChange={(e) => setForm({ ...form, category: e.target.value })}
                       >
+                        <option value="" disabled>
+                          {categories.length > 0 ? "Chọn danh mục..." : "Chưa có danh mục"}
+                        </option>
                         {categories.map((cat) => (
                           <option key={cat.id} value={cat.category}>
-                            {cat.name}
+                            {cat.name} ({cat.category})
                           </option>
                         ))}
                       </select>
@@ -1523,7 +1526,10 @@ const Admin = () => {
           {tab === "categories" && (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Quản lý danh mục ({categories.length})</h2>
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">Quản lý danh mục ({categories.length})</h2>
+                  <p className="text-sm text-muted-foreground">Thêm, sửa, xóa danh mục trực tiếp ở đây. Không cần nhập cấu hình JSON.</p>
+                </div>
                 <Button onClick={openNewCategory}><Plus className="h-4 w-4 mr-1" />Thêm danh mục</Button>
               </div>
 
